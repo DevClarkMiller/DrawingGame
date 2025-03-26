@@ -1,7 +1,7 @@
 import  React, { useEffect, useRef, useState, useCallback, useMemo, Dispatch } from 'react';
 
 // Icons
-import { IoArrowUndo, IoArrowRedo, IoTrash  } from "react-icons/io5";
+import { IoArrowUndo, IoArrowRedo, IoTrash, IoColorFill } from "react-icons/io5";
 
 interface CanvasProps {
     height: number;
@@ -15,12 +15,11 @@ type Coord = {
 
 interface ToolBarProps{
     setStrokeStyle: Dispatch<string | CanvasGradient | CanvasPattern>;
-    setLineJoin: Dispatch<React.SetStateAction<CanvasLineJoin>>;
     setLineWidth: React.Dispatch<React.SetStateAction<number>>;
+    setUsingFill: Dispatch<React.SetStateAction<boolean>>;
 
     maxLineWidth?: number;
     strokeStyle: string | CanvasGradient | CanvasPattern;
-    lineJoin: CanvasLineJoin;
     lineWidth: number;
 
     deleteCanvas: () => void;
@@ -30,16 +29,38 @@ interface ToolBarProps{
 
     canUndo: boolean;
     canRedo: boolean;
+    usingFill: boolean;
 }
 
-const ToolBar = ({deleteCanvas, undo, redo, clearCanvas, canUndo, canRedo, lineWidth, setLineWidth, maxLineWidth = 5, ...props}: ToolBarProps) =>{
-    function onChangeWidth(e: React.ChangeEvent<HTMLInputElement>){ setLineWidth(parseInt(e.target.value)); }
+// TODO: MOVE ALL METHODS OVER HERE
+class CanvasController{
+    public canvasRef: React.RefObject<HTMLCanvasElement | null>;
+
+    public constructor(canvasRef: React.RefObject<HTMLCanvasElement | null>){
+        this.canvasRef = canvasRef;
+    }
+}
+
+const ToolBar = ({
+    deleteCanvas, undo, redo, clearCanvas, canUndo, canRedo, lineWidth, setLineWidth, maxLineWidth = 8, strokeStyle, setStrokeStyle, usingFill, setUsingFill, ...props
+}: ToolBarProps) =>{
+    function onChangeWidth(e: React.ChangeEvent<HTMLInputElement>){ 
+        const num = parseInt(e.target.value);
+        if (num > 0 && num <= maxLineWidth)
+            setLineWidth(num);
+    }
+
+    function onChangeColor(e: React.ChangeEvent<HTMLInputElement>){ setStrokeStyle(e.target.value); }
+
+    function onClickFill(){ setUsingFill(!usingFill);}
 
     return(
         <div className="flex gap-5 justify-center px-12">
             <button onClick={deleteCanvas}><IoTrash /></button>
-            <div className='drawOptions flex gap-5'>
-                <input className='bg-white rounded' min={1} max={maxLineWidth} value={lineWidth} onChange={onChangeWidth} type='number' />
+            <div className='drawOptions flex gap-5 items-center'>
+                <input className='bg-white rounded h-full w-2/3 pl-1' min={1} max={maxLineWidth} value={lineWidth} onChange={onChangeWidth} type='number' />
+                <input className='h-full' onChange={onChangeColor} type='color'/>
+                <button onClick={onClickFill} style={{color: usingFill ? "green": "" }}><IoColorFill /></button>
             </div>
             <div className='undoRedo flex gap-5'>
                 <button disabled= {!canUndo} onClick={undo}><IoArrowUndo /></button>
@@ -59,9 +80,11 @@ const Canvas = (props: CanvasProps) =>{
 
     const [currentImage, setCurrentImage] = useState<string | null>(null);
 
+    const [canvasControll, setCanvasController] = useState<CanvasController>(new CanvasController(canvasRef));
+
     // Drawing options
-    const [strokeStyle, setStrokeStyle] = useState<string | CanvasGradient | CanvasPattern>('blue');
-    const [lineJoin, setLineJoin] = useState<CanvasLineJoin>('round');
+    const [usingFill, setUsingFill] = useState<boolean>(false);
+    const [strokeStyle, setStrokeStyle] = useState<string | CanvasGradient | CanvasPattern>('black');
     const [lineWidth, setLineWidth] = useState<number>(5);
 
     // Maintain a stack of actions, when you undo something it goes onto redo and vice-versa
@@ -167,7 +190,7 @@ const Canvas = (props: CanvasProps) =>{
         const context = canvas.getContext('2d');
         if (context){
             context.strokeStyle = strokeStyle
-            context.lineJoin = lineJoin;
+            context.lineJoin = "round";
             context.lineWidth = lineWidth;
 
             context.beginPath();
@@ -184,7 +207,10 @@ const Canvas = (props: CanvasProps) =>{
             if (isPainting) {
                 const newMousePos = getCoords(event);
                 if (mousePos && newMousePos) {
-                    drawLine(mousePos, newMousePos);
+                    if (!usingFill)
+                        drawLine(mousePos, newMousePos);
+                    else
+                        fillCanvas();
                     setMousePos(newMousePos);
                 }
             }
@@ -259,16 +285,17 @@ const Canvas = (props: CanvasProps) =>{
             // console.log(window.getComputedStyle(canvasRef.current.style));
         }
     }, [canvasRef]);
+
     
     return (
         <div className='w-1/2 flex flex-col items-center gap-3'>
             <canvas className='bg-white' width={props.width} height={props.height} ref={canvasRef}/>
             <ToolBar 
-                lineJoin={lineJoin}
+                usingFill={usingFill}
+                setUsingFill={setUsingFill}
                 lineWidth={lineWidth}
                 strokeStyle={strokeStyle}
                 setStrokeStyle={setStrokeStyle} 
-                setLineJoin={setLineJoin} 
                 setLineWidth={setLineWidth} 
                 deleteCanvas={deleteCanvas} 
                 redo={redo} 
