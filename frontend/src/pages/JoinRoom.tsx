@@ -37,7 +37,7 @@ type InputRowProps = {
 };
 function InputRow({name = "", labelClassName = "", inputClassName = "", children, labelProps, inputProps}: InputRowProps){
     return(
-        <tr className='text-test'>
+        <tr>
             <th className='flex'><label htmlFor={name} className={`w-full h-full text-left ${labelClassName}`} {...labelProps}>{children}</label></th>
             <td className='pb-5 text-center w-fit'><input id={name} name={name} className={inputClassName} {...inputProps}></input></td>
         </tr>
@@ -58,6 +58,7 @@ function JoinRoom() {
 
     function onJoin(e: React.SyntheticEvent<HTMLFormElement>){
         e.preventDefault();
+        joinRoom(name, roomId);
     }
 
     return (
@@ -88,27 +89,7 @@ function JoinRoom() {
                     }
                 </tbody>
             </table>
-            {/* <LabeledInput 
-                name='Name'
-                inputClassName='bg-white rounded text-input'
-                inputProps={{
-                    placeholder: "Cool name goes here",
-                    value: name,
-                    onChange: e => setName(e.target.value),
-                    required: true
-                }}
-            >Name</LabeledInput>
-            <LabeledInput 
-                name='RoomId'
-                inputClassName='bg-white rounded text-input'
-                inputProps={{
-                    placeholder: "RoomID goes here",
-                    value: roomId,
-                    onChange: e => setRoomId(e.target.value),
-                    required: true
-                }}
-            >Room ID</LabeledInput> */}
-            <button>Join Room</button>
+            <button type='submit'>Join Room</button>
         </form>
     );
 }

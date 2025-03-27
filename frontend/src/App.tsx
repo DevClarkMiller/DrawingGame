@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 
 // Pages
 import JoinRoom from "./pages/JoinRoom";
+import CreateRoom from "./pages/CreateRoom";
 
 // Components
 import Canvas from "./components/Canvas";
@@ -18,6 +19,7 @@ function App() {
         <main className="size-full flex flex-col items-center justify-center flex-grow">
           <Routes>
             <Route path="/joinRoom" element={<JoinRoom />} />
+            <Route path="/createRoom" element={<CreateRoom />} />
           </Routes>
         </main>
         {/* <Canvas height={500} width={500} /> */}

@@ -17,10 +17,9 @@ const io = new Server(server, {
     cors: {
         origin: "*"
     }
-}    
-);
+});
 
-type NewRoom = {
+type Room = {
     id: string;
     url: string;
 }
@@ -30,22 +29,39 @@ type JoinedUser = {
     roomId: string;
 }
 
+// Change to use redis in production
+// The value is the hosts name
+let rooms: Map<string, string> = new Map<string, string>();
+
 io.on('connection', (socket) =>{
     console.log("A user connected");
 
-    socket.on('createRoom', (data: any) =>{
+    socket.on('createRoom', (hostName: string) =>{
         const roomId = randomUUID().substring(0, ROOM_ID_LEN);
-        const newRoom: NewRoom = {id: roomId, url: `${CLIENT_URL}/room/${roomId}`};
+        const newRoom: Room = {id: roomId, url: `${CLIENT_URL}/joinRoom?roomId=${roomId}`};
+
         console.log(`CREATING ROOM ${roomId}`);
+        rooms.set(roomId, hostName);
+
         socket.join(roomId);
         io.to(roomId).emit("userJoined", `${randomName()} has joined!`);
         socket.emit("createdRoom", newRoom);
     });
 
     socket.on('joinRoom', (joinedUser: JoinedUser) =>{
+        if (!rooms.has(joinedUser.roomId)){
+            socket.emit("roomNotFound", `${joinedUser.roomId} was not found`);
+            return;
+        }
+
+        // Give the user a random name if they somehow don't have one
+        if (!joinedUser.name)
+            joinedUser.name = randomName();
+        
         console.log("A user is joining!", joinedUser);
+
         socket.join(joinedUser.roomId);
-        socket.to(joinedUser.roomId).emit("userJoined", `${joinedUser.name} has joined!`);
+        io.to(joinedUser.roomId).emit("userJoined", `${joinedUser.name} has joined!`);
     });
 
     socket.on('message', (data: string) =>{
