@@ -89,7 +89,6 @@ io.on('connection', (socket) =>{
         }
 
         roomDetails.players.push(player);
-        console.log(roomDetails);
 
         players.set(socket.id, player);
 
@@ -100,6 +99,11 @@ io.on('connection', (socket) =>{
         socket.emit("playerList", roomDetails.players);
         socket.emit("joinedRoom", roomDetails.room);
         io.to(player.roomId).emit("playerJoined", player);
+    });
+
+    // Starts a specific game depending on the one provided
+    socket.on('startGame', () =>{
+
     });
 
     socket.on('endRoom', (player: Player) =>{ endRoom(player, socket); });

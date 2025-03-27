@@ -5,6 +5,7 @@ import JoinRoom from "./pages/JoinRoom";
 import CreateRoom from "./pages/CreateRoom";
 import ManageRoom from "./pages/ManageRoom";
 import ViewRoom from "./pages/ViewRoom";
+import SketchAndVoteLand from './games/sketchAndVote/SketchAndVoteLand';
 
 // Components
 import Canvas from "./components/Canvas";
@@ -24,6 +25,7 @@ function App() {
             <Route path="/createRoom" element={<CreateRoom />} />
             <Route path="/manageRoom" element={<ManageRoom />} />
             <Route path="/viewRoom" element={<ViewRoom />}/>
+            <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
           </Routes>
         </main>
         {/* <Canvas height={500} width={500} /> */}
