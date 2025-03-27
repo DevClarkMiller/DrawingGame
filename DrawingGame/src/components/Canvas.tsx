@@ -14,12 +14,12 @@ type Coord = {
 }
 
 interface ToolBarProps{
-    setStrokeStyle: Dispatch<string | CanvasGradient | CanvasPattern>;
+    setStrokeStyle: Dispatch<string>;
     setLineWidth: React.Dispatch<React.SetStateAction<number>>;
     setUsingFill: Dispatch<React.SetStateAction<boolean>>;
 
     maxLineWidth?: number;
-    strokeStyle: string | CanvasGradient | CanvasPattern;
+    strokeStyle: string;
     lineWidth: number;
 
     deleteCanvas: () => void;
@@ -70,6 +70,13 @@ const ToolBar = ({
     );
 }
 
+interface Color{
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+}
+
 const Canvas = (props: CanvasProps) =>{
     // Refs
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -80,11 +87,11 @@ const Canvas = (props: CanvasProps) =>{
 
     const [currentImage, setCurrentImage] = useState<string | null>(null);
 
-    const [canvasControll, setCanvasController] = useState<CanvasController>(new CanvasController(canvasRef));
+    const [canvasController, setCanvasController] = useState<CanvasController>(new CanvasController(canvasRef));
 
     // Drawing options
     const [usingFill, setUsingFill] = useState<boolean>(false);
-    const [strokeStyle, setStrokeStyle] = useState<string | CanvasGradient | CanvasPattern>('black');
+    const [strokeStyle, setStrokeStyle] = useState<string>('#000000');
     const [lineWidth, setLineWidth] = useState<number>(5);
 
     // Maintain a stack of actions, when you undo something it goes onto redo and vice-versa
@@ -155,12 +162,99 @@ const Canvas = (props: CanvasProps) =>{
         return {x: e.pageX - canvas.offsetLeft, y: e.pageY - canvas.offsetTop};
     }
 
-    const fillCanvas = () =>{
+    const getIndex = (x:number, y: number, width: number): number => {
+        return (y * width + x) * 4;
+    }; 
+   
+    const getPixel = (x:number, y:number, width: number, data: Uint8ClampedArray<ArrayBufferLike>): Color => {
+        const i: number = getIndex(x, y, width);
+        return { r: data[i], g: data[i + 1], b: data[i + 2], a: data[i + 3] };
+    };
+
+    const setPixel = (x: number, y: number, color: Color, width: number, data: Uint8ClampedArray<ArrayBufferLike>) =>{
+        const i = getIndex(x, y, width);
+        data[i] = color.r;
+        data[i + 1] = color.g;
+        data[i + 2] = color.b;
+        data[i + 3] = color.a;
+    }
+
+    const colorsMatch = (a: Color, b: Color) => {
+        return a.r === b.r && a.g === b.g && a.b === b.b;
+    }
+
+    function hexToRgba(hex: string, alpha: number = 255): Color{
+        // Remove the '#' if present
+        hex = hex.replace(/^#/, "");
+    
+        // Parse the color
+        let r: number, g: number, b: number;
+    
+        if (hex.length === 3) {
+            // Convert shorthand hex (#fff → #ffffff)
+            r = parseInt(hex[0] + hex[0], 16);
+            g = parseInt(hex[1] + hex[1], 16);
+            b = parseInt(hex[2] + hex[2], 16);
+        } else if (hex.length === 6) {
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+        } else {
+            throw new Error("Invalid hex color format");
+        }
+    
+        return { r, g, b, a: alpha };
+    }
+
+    /**
+     * Brief: My own flood-fill algorithm
+     */
+    function floodFill(targetColor: Color, newColor: Color, row: number, col: number, width: number, height: number, data: Uint8ClampedArray<ArrayBufferLike>){
+        const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+        const stk: Coord[] = [{y: row, x: col}];
+        const visited = new Set<string>(`${col}, ${row}`);
+
+        while (stk.length > 0){
+            const point: Coord | undefined = stk.pop();
+            if (!point) continue;
+            visited.add(`${point?.x}, ${point.y}`);
+            // Mark the start as the color
+            setPixel(point.x, point.y, newColor, width, data);
+
+            // Check if the current pixel isn't the same color
+            for (const dir of dirs){
+                const y = point.y + dir[0];
+                const x = point.x + dir[1];
+                
+                if (y < 0 || y > height -1) continue;
+                if (x < 0 || x > width - 1) continue;
+                if (visited.has(`${x}, ${y}`)) continue;
+
+                // Push onto stack if the pixel isn't the target
+                const pixel = getPixel(x, y, width, data);
+                if (colorsMatch(targetColor, pixel))
+                    stk.push({x: x, y: y});
+            }
+        }
+    }
+
+    /**
+     * Brief: Sets everything up for the floodfill algorithm to take place
+     * 
+     */
+    const fillCanvas = (mousePos: Coord) =>{
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
+
         if (context) {
-            context.fill();
+            const imageData: ImageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const data: Uint8ClampedArray<ArrayBufferLike> = imageData.data;
+            const targetColor = getPixel(mousePos.x, mousePos.y, imageData.width, data);
+            const newColor = hexToRgba(strokeStyle);
+            floodFill(targetColor, newColor, mousePos.y, mousePos.x, imageData.width, imageData.height, data);
+            context.putImageData(imageData, 0, 0);
         }
     }
 
@@ -168,7 +262,10 @@ const Canvas = (props: CanvasProps) =>{
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
-        if (context) context.clearRect(0, 0, canvas.width, canvas.height);
+        if (context){
+            context.fillStyle = "white"; // Sets it to white, but doesn't change the value in state
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
     }
 
     const drawImage = (imageUrl: string) =>{
@@ -202,6 +299,15 @@ const Canvas = (props: CanvasProps) =>{
         }
     }
 
+    const bucket = useCallback((event: MouseEvent) => {
+        const mousePos: Coord | undefined = getCoords(event);
+        if (mousePos){
+            if (usingFill)
+                fillCanvas(mousePos);
+            setMousePos(mousePos);
+        }                
+    }, [usingFill, mousePos]);
+
     const paint = useCallback(
         (event: MouseEvent) => {
             if (isPainting) {
@@ -209,8 +315,6 @@ const Canvas = (props: CanvasProps) =>{
                 if (mousePos && newMousePos) {
                     if (!usingFill)
                         drawLine(mousePos, newMousePos);
-                    else
-                        fillCanvas();
                     setMousePos(newMousePos);
                 }
             }
@@ -253,10 +357,22 @@ const Canvas = (props: CanvasProps) =>{
 
         const canvas: HTMLCanvasElement = canvasRef.current;
         canvas.addEventListener('mousedown', startPaint);
+        canvas.addEventListener('click', bucket);
         return () => {
             canvas.removeEventListener('mousedown', startPaint);
         };
     }, [startPaint]);
+
+    useEffect(() =>{
+        if (!canvasRef.current) return;
+
+        const canvas: HTMLCanvasElement = canvasRef.current;
+        canvas.addEventListener('click', bucket);
+
+        return () => {
+            canvas.removeEventListener('click', bucket);
+        };
+    }, [bucket]);
 
     useEffect(() =>{
         if (!canvasRef.current) return;
@@ -286,10 +402,11 @@ const Canvas = (props: CanvasProps) =>{
         }
     }, [canvasRef]);
 
-    
+    useEffect(() => clearCanvas(), []);
+
     return (
         <div className='w-1/2 flex flex-col items-center gap-3'>
-            <canvas className='bg-white' width={props.width} height={props.height} ref={canvasRef}/>
+            <canvas width={props.width} height={props.height} ref={canvasRef}/>
             <ToolBar 
                 usingFill={usingFill}
                 setUsingFill={setUsingFill}
