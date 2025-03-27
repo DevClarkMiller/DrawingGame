@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useContext, useState } from 'react'
 import { useNavigate, NavigateFunction } from 'react-router-dom';
 
 // Icons
-import { FaLink } from "react-icons/fa";
+import { FaLink } from 'react-icons/fa';
 
 // Components
 import PlayersList from '../components/PlayersList';
@@ -10,7 +10,7 @@ import PlayersList from '../components/PlayersList';
 // Context
 import { SocketContext } from '../context/SocketProvider';
 
-function ManageRoom() {
+function ViewRoom() {
     const navigate: NavigateFunction = useNavigate();
     const { loading, currentRoom } = useContext(SocketContext);
     const [inviteColor, setInviteColor] = useState<string>("text-main");
@@ -40,4 +40,4 @@ function ManageRoom() {
     );
 }
 
-export default ManageRoom;
+export default ViewRoom;

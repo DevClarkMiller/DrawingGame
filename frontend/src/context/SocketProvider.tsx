@@ -2,19 +2,11 @@ import React, { Dispatch, SetStateAction, createContext, useEffect, useState } f
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
+// Types
+import { Room, Player } from '../def';
 
 // Custom hooks
 import { useSocket } from '../hooks/useSocket';
-
-type JoinedUser = {
-    name?: string; // If not provided, a random one will be generated
-    roomId: string;
-}
-
-type Room = {
-    id: string;
-    url: string;
-}
 
 export type SocketContextType = {
     // State
@@ -22,13 +14,14 @@ export type SocketContextType = {
     events: any[];
     currentRoom: Room | undefined;
     loading: boolean;
+    players: Player[];
 
     // State setters
     setIsConnected: Dispatch<SetStateAction<boolean>>;
-    setEvents: Dispatch<React.SetStateAction<any[]>>;
+    setEvents: Dispatch<SetStateAction<any[]>>;
     setCurrentRoom: Dispatch<SetStateAction<Room | undefined>>;
-    setLoading: Dispatch<React.SetStateAction<boolean>>;
-
+    setLoading: Dispatch<SetStateAction<boolean>>;
+    setPlayers: Dispatch<SetStateAction<Player[]>>;
 
     // Functions
     joinRoom: (name: string, roomId: string) => void;
@@ -36,6 +29,7 @@ export type SocketContextType = {
 }
 
 export const SocketContext = createContext<SocketContextType>({
+    players: [],
     loading: true,
     currentRoom: undefined,
     isConnected: false,
@@ -45,7 +39,8 @@ export const SocketContext = createContext<SocketContextType>({
     setIsConnected: () => {}, 
     setEvents: () => {},
     setCurrentRoom: () => {},
-    setLoading: () => {}
+    setLoading: () => {},
+    setPlayers: () => {}
 });
 function SocketProvider({children}: {children: React.ReactNode}) {
     const navigate: NavigateFunction = useNavigate();
@@ -55,12 +50,13 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     const [loading, setLoading] = useState<boolean>(false);
     const [currentRoom, setCurrentRoom] = useState<Room | undefined>(undefined);
     const [events, setEvents] = useState<any[]>([]);
-
+    const [players, setPlayers] = useState<Player[]>([]);
+    
     function joinRoom(name: string, roomId: string){
-        console.log("NOW GOING TO JOIN ROOM");
+        setLoading(true);
         if (!isConnected) socket?.connect();
-        const joinedUser: JoinedUser = {name, roomId};
-        socket.emit("joinRoom", joinedUser);
+        const player: Player = {name, roomId, isHost: false};
+        socket.emit("joinRoom", player);
     }
 
     function createRoom(hostName: string){
@@ -84,33 +80,66 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             console.log(room);
         }
 
-        function onUserJoined(value: any){
-            console.log(value);
+        function onJoinedRoom(room: Room){
+            setLoading(false);
+            setCurrentRoom(room);
+            navigate('/viewRoom');
+        }
+
+        function onPlayerJoined(player: Player){            
+            setPlayers(prevPlayers => {
+                const hasPlayer: boolean = prevPlayers.some((pl) => pl.name === player.name);
+                if (!hasPlayer)
+                    return [...prevPlayers as Player[], player]
+                return prevPlayers;
+            }); 
         }
 
         function roomNotFound(msg: string){
             alert(msg);
         }
 
+        function playerLeft(player: Player){
+            setPlayers(prevPlayers => prevPlayers.filter(pl => pl.name != player.name));
+        }
+
+        // Is called when the player joins, gives them a list of everyone in the room
+        function onPlayerList(playerList: Player[]){
+            setPlayers(playerList);
+        }
+
+        function onNameTaken(msg: string){
+            setLoading(false);
+            alert(msg);
+        }
+
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
-        socket.on('userJoined', onUserJoined);
+        socket.on('playerJoined', onPlayerJoined);
         socket.on('createdRoom', createdRoom);
         socket.on('roomNotFound', roomNotFound);
+        socket.on('playerLeft', playerLeft);
+        socket.on('playerList', onPlayerList);
+        socket.on('joinedRoom', onJoinedRoom);
+        socket.on('nameTaken', onNameTaken);
 
         return () =>{
             socket.off('connect', onConnect);
             socket.off('disconnect', onDisconnect);
-            socket.off('userJoined', onUserJoined);
+            socket.off('playerJoined', onPlayerJoined);
             socket.off('createdRoom', createdRoom);
             socket.off('roomNotFound', roomNotFound);
+            socket.off('playerLeft', playerLeft);
+            socket.off('playerList', onPlayerList);
+            socket.off('joinedRoom', onJoinedRoom);
+            socket.off('nameTaken', onNameTaken);
         }
-
     }, []);
 
     return (
         <SocketContext.Provider value={{
             loading, setLoading,
+            players, setPlayers,
             events, setEvents, 
             isConnected, setIsConnected, 
             joinRoom, createRoom,
