@@ -1,5 +1,6 @@
 import React, { Dispatch, SetStateAction, createContext, useEffect, useState } from 'react';
-import { connect, Socket } from 'socket.io-client';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
+import { Socket } from 'socket.io-client';
 
 
 // Custom hooks
@@ -20,11 +21,13 @@ export type SocketContextType = {
     isConnected: boolean;
     events: any[];
     currentRoom: Room | undefined;
+    loading: boolean;
 
     // State setters
     setIsConnected: Dispatch<SetStateAction<boolean>>;
     setEvents: Dispatch<React.SetStateAction<any[]>>;
     setCurrentRoom: Dispatch<SetStateAction<Room | undefined>>;
+    setLoading: Dispatch<React.SetStateAction<boolean>>;
 
 
     // Functions
@@ -33,6 +36,7 @@ export type SocketContextType = {
 }
 
 export const SocketContext = createContext<SocketContextType>({
+    loading: true,
     currentRoom: undefined,
     isConnected: false,
     events: [],
@@ -40,11 +44,15 @@ export const SocketContext = createContext<SocketContextType>({
     createRoom: () => {},
     setIsConnected: () => {}, 
     setEvents: () => {},
-    setCurrentRoom: () => {}
+    setCurrentRoom: () => {},
+    setLoading: () => {}
 });
 function SocketProvider({children}: {children: React.ReactNode}) {
+    const navigate: NavigateFunction = useNavigate();
+
     const socket: Socket = useSocket(process.env.SERVER_URL as string || "http://localhost:5170");
     const [isConnected, setIsConnected] = useState<boolean>(socket?.connected);
+    const [loading, setLoading] = useState<boolean>(false);
     const [currentRoom, setCurrentRoom] = useState<Room | undefined>(undefined);
     const [events, setEvents] = useState<any[]>([]);
 
@@ -56,6 +64,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     function createRoom(hostName: string){
+        setLoading(true);
         socket.emit("createRoom", hostName);
     }
 
@@ -70,6 +79,8 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
         function createdRoom(room: Room){
             setCurrentRoom(room);
+            setLoading(false);
+            navigate('/manageRoom');
             console.log(room);
         }
 
@@ -99,6 +110,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
     return (
         <SocketContext.Provider value={{
+            loading, setLoading,
             events, setEvents, 
             isConnected, setIsConnected, 
             joinRoom, createRoom,

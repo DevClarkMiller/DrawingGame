@@ -1,4 +1,4 @@
-import React, { useContext, InputHTMLAttributes, LabelHTMLAttributes, useMemo, useState, useEffect } from 'react'
+import React, { useContext, InputHTMLAttributes, LabelHTMLAttributes, useMemo, useState } from 'react'
 
 // Lib
 import randomName from '../lib/randomName';
@@ -29,11 +29,8 @@ function LabeledInput(
 
 
 function CreateRoom() {
+    // Context
     const { createRoom } = useContext(SocketContext);
-    const initialRoomId = useMemo(() =>{
-        const query = new URLSearchParams(location.search);
-        return query.get('roomId') || "";
-    }, []);
 
     // State
     const [hostName, setHostName] = useState<string>(randomName());

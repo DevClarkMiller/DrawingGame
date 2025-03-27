@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 // Pages
 import JoinRoom from "./pages/JoinRoom";
 import CreateRoom from "./pages/CreateRoom";
+import ManageRoom from "./pages/ManageRoom";
 
 // Components
 import Canvas from "./components/Canvas";
@@ -20,6 +21,7 @@ function App() {
           <Routes>
             <Route path="/joinRoom" element={<JoinRoom />} />
             <Route path="/createRoom" element={<CreateRoom />} />
+            <Route path="/manageRoom" element={<ManageRoom />} />
           </Routes>
         </main>
         {/* <Canvas height={500} width={500} /> */}
