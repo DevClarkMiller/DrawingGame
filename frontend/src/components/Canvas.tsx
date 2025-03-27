@@ -255,6 +255,8 @@ const Canvas = (props: CanvasProps) =>{
             const newColor = hexToRgba(strokeStyle);
             floodFill(targetColor, newColor, mousePos.y, mousePos.x, imageData.width, imageData.height, data);
             context.putImageData(imageData, 0, 0);
+            setIsPainting(true); // Just for the sake of making exitPaint work
+            exitPaint(); // To save this as the current image
         }
     }
 
