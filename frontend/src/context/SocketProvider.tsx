@@ -3,7 +3,7 @@ import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
 // Types
-import { Room, Player } from '../def';
+import { Room, Player, Message } from '../def';
 
 // Custom hooks
 import { useSocket } from '../hooks/useSocket';
@@ -51,13 +51,16 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     const [isConnected, setIsConnected] = useState<boolean>(socket?.connected);
     const [loading, setLoading] = useState<boolean>(false);
     const [currentRoom, setCurrentRoom] = useState<Room | undefined>(undefined);
+    const [currentPlayer, setCurrentPlayer] = useState<Player | undefined>();
     const [events, setEvents] = useState<any[]>([]);
     const [players, setPlayers] = useState<Player[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     
     function joinRoom(name: string, roomId: string){
         setLoading(true);
         if (!isConnected) socket?.connect();
         const player: Player = {name, roomId, isHost: false};
+        setCurrentPlayer(player);
         socket.emit("joinRoom", player);
     }
 
@@ -68,6 +71,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
     function leaveRoom(){
         setLoading(true);
+        setCurrentPlayer(undefined);
         socket.disconnect();
         socket.connect(); // Reconnect
     }
@@ -94,13 +98,9 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             navigate('/viewRoom');
         }
 
-        function onPlayerJoined(player: Player){            
-            setPlayers(prevPlayers => {
-                const hasPlayer: boolean = prevPlayers.some((pl) => pl.name === player.name);
-                if (!hasPlayer)
-                    return [...prevPlayers as Player[], player]
-                return prevPlayers;
-            }); 
+        function onPlayerJoined(player: Player){         
+            if (player.name != currentPlayer?.name)   
+            setPlayers(prevPlayers =>  [...prevPlayers as Player[], player]); 
         }
 
         function roomNotFound(msg: string){

@@ -8,3 +8,8 @@ export type Player = {
     isHost: boolean;
     roomId: string;
 }
+
+export type Message = {
+    author: string;
+    text: string;
+}

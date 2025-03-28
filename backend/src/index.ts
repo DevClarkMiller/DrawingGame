@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto';
 import randomName from '../lib/randomName';
 
 // Types
-import { Player, Room } from './def';
+import { Player, Room, RoomDetails, Message } from './def';
 
 loadEnv();
 const PORT: number = parseInt(process.env.PORT as string) || 5170;
@@ -22,17 +22,7 @@ const io = new Server(server, {
     }
 });
 
-type Message = {
-    author: string;
-    text: string;
-}
 
-type RoomDetails = {
-    room: Room;
-    host: Player;
-    players: Player[]; // All the players in the room
-    messages: Message[];
-}
 
 // Change to use redis in production
 // The value is the hosts name
@@ -115,8 +105,14 @@ io.on('connection', (socket) =>{
 
     socket.on('endRoom', (player: Player) =>{ endRoom(player, socket); });
 
-    socket.on('message', (data: string) =>{
-        console.log(data);
+    socket.on('message', ({msg, player}: {msg: Message, player: Player}) =>{
+        console.log(msg);
+        const roomDetails: RoomDetails | undefined = rooms.get(player.roomId);
+        
+        if (roomDetails){
+            roomDetails.messages.push(msg);
+            io.to(player.roomId).emit('newMessage', msg);
+        }
     });
 
     socket.on('disconnect', () => {

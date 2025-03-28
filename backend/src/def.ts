@@ -8,3 +8,15 @@ export type Player = {
     isHost: boolean;
     roomId: string;
 }
+
+export type Message = {
+    author: string;
+    text: string;
+}
+
+export type RoomDetails = {
+    room: Room;
+    host: Player;
+    players: Player[]; // All the players in the room
+    messages: Message[];
+}
