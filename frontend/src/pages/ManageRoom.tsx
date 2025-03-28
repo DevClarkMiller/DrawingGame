@@ -6,6 +6,7 @@ import { FaLink } from "react-icons/fa";
 
 // Types
 import { Game } from '../def';
+import { GameActionKind } from '../reducers/gameReducer';
 
 // Components
 import PlayersList from '../components/PlayersList';
@@ -16,7 +17,7 @@ import { SocketContext } from '../context/SocketProvider';
 
 function ManageRoom() {
     const navigate: NavigateFunction = useNavigate();
-    const { players, loading, currentRoom, setCurrentGame, startGame } = useContext(SocketContext);
+    const { players, loading, currentRoom, dispatchGame, startGame } = useContext(SocketContext);
     const [inviteColor, setInviteColor] = useState<string>("text-main");
 
     const canStart = useMemo(() => players?.length > 1, [players]);
@@ -34,7 +35,7 @@ function ManageRoom() {
 
     // Placeholder for now, eventually let users pick the game type
     useEffect(() =>{
-        setCurrentGame({timeLeft: 60, maxTime: 60, name: 'SketchAndVote'});
+        dispatchGame({type: GameActionKind.SET_GAME, payload: {timeLeft: 60, maxTime: 60, name: 'SketchAndVote'}});
     }, []);
 
     useEffect(() =>{

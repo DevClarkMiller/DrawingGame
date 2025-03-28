@@ -1,9 +1,12 @@
-import React, { Dispatch, SetStateAction, createContext, useEffect, useState } from 'react';
+import React, { Dispatch, SetStateAction, createContext, useEffect, useState, useReducer } from 'react';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
 // Types
 import { Room, Player, Message, Game } from '../def';
+
+// Reducers
+import { INITIAL_GAME, gameReducer, GameActionKind, GameAction } from '../reducers/gameReducer';
 
 // Custom hooks
 import { useSocket } from '../hooks/useSocket';
@@ -21,7 +24,7 @@ export type SocketContextType = {
     setIsConnected: Dispatch<SetStateAction<boolean>>;
     setEvents: Dispatch<SetStateAction<any[]>>;
     setCurrentRoom: Dispatch<SetStateAction<Room | undefined>>;
-    setCurrentGame: Dispatch<SetStateAction<Game | undefined>>;
+    dispatchGame: React.ActionDispatch<[action: GameAction]>;
     setLoading: Dispatch<SetStateAction<boolean>>;
     setPlayers: Dispatch<SetStateAction<Player[]>>;
 
@@ -50,7 +53,7 @@ export const SocketContext = createContext<SocketContextType>({
     setIsConnected: () => {}, 
     setEvents: () => {},
     setCurrentRoom: () => {},
-    setCurrentGame: () => {},
+    dispatchGame: () => {},
     setLoading: () => {},
     setPlayers: () => {}
 });
@@ -67,7 +70,8 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     // Current values
     const [currentRoom, setCurrentRoom] = useState<Room | undefined>();
     const [currentPlayer, setCurrentPlayer] = useState<Player | undefined>();
-    const [currentGame, setCurrentGame] = useState<Game | undefined>();
+
+    const [currentGame, dispatchGame] = useReducer(gameReducer, INITIAL_GAME);
     
     function joinRoom(name: string, roomId: string){
         setLoading(true);
@@ -96,78 +100,78 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             socket.emit('startGame', { game: currentGame, roomId: currentRoom?.id });
     }
 
+    // Socket event callbacks
+    function onConnect(){
+        setIsConnected(true);
+    }
+
+    function onDisconnect() {
+        setIsConnected(false);
+    }
+
+    function createdRoom(room: Room){
+        if (currentPlayer) // Player will be given a name and has the isHost boolean set before this is called
+            setCurrentPlayer({...currentPlayer, roomId: room.id}); // Set the roomId on current player
+        setCurrentRoom(room);
+        setLoading(false);
+        navigate('/manageRoom');
+        console.log(room);
+    }
+
+    function onJoinedRoom(room: Room){
+        setLoading(false);
+        setCurrentRoom(room);
+        navigate('/viewRoom');
+    }
+
+    function onPlayerJoined(player: Player){         
+        if (player.name != currentPlayer?.name)   
+            setPlayers(prevPlayers =>  [...prevPlayers as Player[], player]); 
+    }
+
+    function roomNotFound(msg: string){
+        setCurrentPlayer(undefined);
+        alert(msg);
+    }
+
+    function playerLeft(player: Player){
+        setPlayers(prevPlayers => prevPlayers.filter(pl => pl.name != player.name));
+    }
+
+    // Is called when the player joins, gives them a list of everyone in the room
+    function onPlayerList(playerList: Player[]){
+        console.log();
+        setPlayers(playerList);
+    }
+
+    function onNameTaken(msg: string){
+        setLoading(false);
+        alert(msg);
+    }
+
+    function onExitRoom(msg: string){
+        if (currentPlayer)
+            navigate(currentPlayer.isHost ? "/" : "/joinRoom");
+        else
+            navigate('/');
+    }
+
+    function onGameStart(game: Game){
+        console.log("Game starting", game);
+        dispatchGame({type: GameActionKind.SET_GAME, payload: game}); // Set the currentGame
+        // Navigate the player based off the gamemode
+        switch(game.name){
+            case 'SketchAndVote': navigate("/standardGame");
+                break;
+        }
+    }
+
+    // Adjust the time left on the current game
+    function onTimeDecrease(newTime: number){
+        dispatchGame({type: GameActionKind.SET_TIMELEFT, payload: newTime}); // Update the time left on the game
+    }
+
     useEffect(() =>{
-        function onConnect(){
-            setIsConnected(true);
-        }
-
-        function onDisconnect() {
-            setIsConnected(false);
-        }
-
-        function createdRoom(room: Room){
-            if (currentPlayer) // Player will be given a name and has the isHost boolean set before this is called
-                setCurrentPlayer({...currentPlayer, roomId: room.id}); // Set the roomId on current player
-            setCurrentRoom(room);
-            setLoading(false);
-            navigate('/manageRoom');
-            console.log(room);
-        }
-
-        function onJoinedRoom(room: Room){
-            setLoading(false);
-            setCurrentRoom(room);
-            navigate('/viewRoom');
-        }
-
-        function onPlayerJoined(player: Player){         
-            if (player.name != currentPlayer?.name)   
-                setPlayers(prevPlayers =>  [...prevPlayers as Player[], player]); 
-        }
-
-        function roomNotFound(msg: string){
-            setCurrentPlayer(undefined);
-            alert(msg);
-        }
-
-        function playerLeft(player: Player){
-            setPlayers(prevPlayers => prevPlayers.filter(pl => pl.name != player.name));
-        }
-
-        // Is called when the player joins, gives them a list of everyone in the room
-        function onPlayerList(playerList: Player[]){
-            console.log();
-            setPlayers(playerList);
-        }
-
-        function onNameTaken(msg: string){
-            setLoading(false);
-            alert(msg);
-        }
-
-        function onExitRoom(msg: string){
-            if (currentPlayer)
-                navigate(currentPlayer.isHost ? "/" : "/joinRoom");
-            else
-                navigate('/');
-        }
-
-        function onGameStart(game: Game){
-            console.log("Game starting", game);
-            setCurrentGame(game); 
-            // Navigate the player based off the gamemode
-            switch(game.name){
-                case 'SketchAndVote': navigate("/standardGame");
-                    break;
-            }
-        }
-        
-        // Adjust the time left on the current game
-        function onTimeDecrease(newTime: number){
-            console.log(currentGame);
-            if (currentGame) setCurrentGame({...currentGame, timeLeft: newTime});
-        }
-
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
         socket.on('playerJoined', onPlayerJoined);
@@ -206,7 +210,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             joinRoom, createRoom, leaveRoom,
             startGame,
             currentRoom, setCurrentRoom,
-            currentGame, setCurrentGame
+            currentGame, dispatchGame
         }}>
             {children}
         </SocketContext.Provider>
