@@ -13,3 +13,8 @@ export type Message = {
     author: string;
     text: string;
 }
+
+export type Game = {
+    timeLeft: number;
+    maxTime: number;
+}

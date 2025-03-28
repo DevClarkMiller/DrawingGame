@@ -20,3 +20,8 @@ export type RoomDetails = {
     players: Player[]; // All the players in the room
     messages: Message[];
 }
+
+export type Game = {
+    timeLeft: number;
+    maxTime: number;
+}

@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto';
 import randomName from '../lib/randomName';
 
 // Types
-import { Player, Room, RoomDetails, Message } from './def';
+import { Player, Room, RoomDetails, Message, Game } from './def';
 
 loadEnv();
 const PORT: number = parseInt(process.env.PORT as string) || 5170;
@@ -22,12 +22,10 @@ const io = new Server(server, {
     }
 });
 
-
-
 // Change to use redis in production
-// The value is the hosts name
 let rooms: Map<string, RoomDetails> = new Map<string, RoomDetails>();
 let players: Map<string, Player> = new Map<string, Player>(); // Socket ids mapped to their players
+let games: Map<string, Game> = new Map<string, Game>(); // Key is the roomId of the game
 
 function endRoom(player: Player, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>){
     console.log(`Ending room: ${player.roomId}`);
@@ -50,7 +48,8 @@ function endRoom(player: Player, socket: Socket<DefaultEventsMap, DefaultEventsM
     socket.emit('endedRoom', `${player.roomId} has been ended`);
 }
 
-io.on('connection', (socket) =>{
+// Creates all the callbacks related to managing a room
+function manageRoom(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>){
     socket.on('createRoom', (hostName: string) =>{
         const roomId = randomUUID().substring(0, ROOM_ID_LEN);
         const newRoom: Room = {id: roomId, url: `${CLIENT_URL}/joinRoom?roomId=${roomId}`};
@@ -66,6 +65,36 @@ io.on('connection', (socket) =>{
 
         io.to(roomId).emit("playerJoined", host);
         socket.emit("createdRoom", newRoom);
+    });
+
+    socket.on('endRoom', (player: Player) =>{ endRoom(player, socket); });
+
+    socket.on('message', ({msg, player}: {msg: Message, player: Player}) =>{
+        console.log(msg);
+        const roomDetails: RoomDetails | undefined = rooms.get(player.roomId);
+        
+        if (roomDetails){
+            roomDetails.messages.push(msg);
+            io.to(player.roomId).emit('newMessage', msg);
+        }
+    });
+
+    socket.on('disconnect', () => {
+        const player: Player | undefined = players.get(socket.id);
+        if (player){
+            players.delete(socket.id);
+            console.log(`Player ${player.name} disconnected`);
+
+            const roomDetails: RoomDetails | undefined = rooms.get(player.roomId);
+            if (roomDetails){
+                // Remove player from the list
+                roomDetails.players = roomDetails.players.filter(pl => pl.name !== player.name);
+            }
+
+            // Delete the room when the host disconnects POTENTIALLY REMAP THE HOST INSTEAD TO A DIFFERENT PLAYER
+            if (player.isHost) endRoom(player, socket);
+            io.to(player.roomId).emit('playerLeft', player);
+        }
     });
 
     socket.on('joinRoom', (player: Player) =>{
@@ -98,41 +127,44 @@ io.on('connection', (socket) =>{
         socket.join(player.roomId);
         player.isHost = false;
     });
+}
+
+function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>){
+    async function startGame(currentGame: Game, roomID: string): Promise<void>{ // Create a promise which resolves once the interval is complete
+        return new Promise<void>((resolve) =>{
+            const interval = setInterval(() => {
+                if (currentGame.timeLeft <= 0){
+                    clearInterval(interval);
+                    resolve();   
+                }
+                else{
+                    currentGame.timeLeft -= 1; // Subtract one second from the game
+                    console.log(currentGame);
+                    io.to(roomID).emit('timeDecrease', currentGame.timeLeft); // Let the user
+                }
+            }, 1000); // Execute every 1000 ms
+        });
+    }
 
     // Starts a specific game depending on the one provided
-    socket.on('startGame', () =>{
+    socket.on('startGame', async ({game, roomId}: {game: Game, roomId: string}) =>{
+        games.set(roomId, game);
+        console.log(games.get(roomId));
 
+        // Start game loop, once the time runs out the game is over
+        const currentGame: Game | undefined = games.get(roomId);
+        if (!currentGame) return;
+
+        // First emit that the game has started
+        io.to(roomId).emit('gameStarted', game);
+        await startGame(currentGame, roomId);
+        console.log("GAME OVER!!");
     });
+}
 
-    socket.on('endRoom', (player: Player) =>{ endRoom(player, socket); });
-
-    socket.on('message', ({msg, player}: {msg: Message, player: Player}) =>{
-        console.log(msg);
-        const roomDetails: RoomDetails | undefined = rooms.get(player.roomId);
-        
-        if (roomDetails){
-            roomDetails.messages.push(msg);
-            io.to(player.roomId).emit('newMessage', msg);
-        }
-    });
-
-    socket.on('disconnect', () => {
-        const player: Player | undefined = players.get(socket.id);
-        if (player){
-            players.delete(socket.id);
-            console.log(`Player ${player.name} disconnected`);
-
-            const roomDetails: RoomDetails | undefined = rooms.get(player.roomId);
-            if (roomDetails){
-                // Remove player from the list
-                roomDetails.players = roomDetails.players.filter(pl => pl.name !== player.name);
-            }
-
-            // Delete the room when the host disconnects POTENTIALLY REMAP THE HOST INSTEAD TO A DIFFERENT PLAYER
-            if (player.isHost) endRoom(player, socket);
-            io.to(player.roomId).emit('playerLeft', player);
-        }
-    });
+io.on('connection', (socket) =>{
+    manageRoom(socket);
+    manageGame(socket);
 });
 
 server.listen(PORT, () =>{

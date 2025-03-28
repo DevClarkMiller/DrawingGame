@@ -28,7 +28,7 @@ function App() {
             <Route path="/manageRoom" element={<ManageRoom />} />
             <Route path="/viewRoom" element={<ViewRoom />}/>
             <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
-            <Route path="/standardGame" element={<StandardGame timeLeft={60} maxTime={60} />}/>
+            <Route path="/standardGame" element={<StandardGame game={{maxTime: 60, timeLeft: 60}} gameFinishedPath="/" />}/>
           </Routes>
         </main>
         {/* <Canvas height={500} width={500} /> */}

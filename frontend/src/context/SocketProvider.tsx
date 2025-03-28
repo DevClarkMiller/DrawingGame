@@ -3,7 +3,7 @@ import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
 // Types
-import { Room, Player, Message } from '../def';
+import { Room, Player, Message, Game } from '../def';
 
 // Custom hooks
 import { useSocket } from '../hooks/useSocket';
@@ -13,6 +13,7 @@ export type SocketContextType = {
     isConnected: boolean;
     events: any[];
     currentRoom: Room | undefined;
+    currentGame: Game | undefined;
     loading: boolean;
     players: Player[];
 
@@ -20,27 +21,36 @@ export type SocketContextType = {
     setIsConnected: Dispatch<SetStateAction<boolean>>;
     setEvents: Dispatch<SetStateAction<any[]>>;
     setCurrentRoom: Dispatch<SetStateAction<Room | undefined>>;
+    setCurrentGame: Dispatch<SetStateAction<Game | undefined>>;
     setLoading: Dispatch<SetStateAction<boolean>>;
     setPlayers: Dispatch<SetStateAction<Player[]>>;
 
     // Functions
+
+    // Room management
     joinRoom: (name: string, roomId: string) => void;
     createRoom: (hostName: string) => void;
     leaveRoom: () => void;
+
+    // Game management
+    startGame: () => void;
 }
 
 export const SocketContext = createContext<SocketContextType>({
     players: [],
     loading: true,
     currentRoom: undefined,
+    currentGame: undefined,
     isConnected: false,
     events: [],
     joinRoom: () => {},
     createRoom: () => {},
     leaveRoom: () => {},
+    startGame: () => {},
     setIsConnected: () => {}, 
     setEvents: () => {},
     setCurrentRoom: () => {},
+    setCurrentGame: () => {},
     setLoading: () => {},
     setPlayers: () => {}
 });
@@ -50,11 +60,14 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     const socket: Socket = useSocket(process.env.SERVER_URL as string || "http://localhost:5170");
     const [isConnected, setIsConnected] = useState<boolean>(socket?.connected);
     const [loading, setLoading] = useState<boolean>(false);
-    const [currentRoom, setCurrentRoom] = useState<Room | undefined>(undefined);
-    const [currentPlayer, setCurrentPlayer] = useState<Player | undefined>();
     const [events, setEvents] = useState<any[]>([]);
     const [players, setPlayers] = useState<Player[]>([]);
     const [messages, setMessages] = useState<Message[]>([]);
+
+    // Current values
+    const [currentRoom, setCurrentRoom] = useState<Room | undefined>();
+    const [currentPlayer, setCurrentPlayer] = useState<Player | undefined>();
+    const [currentGame, setCurrentGame] = useState<Game | undefined>();
     
     function joinRoom(name: string, roomId: string){
         setLoading(true);
@@ -75,6 +88,12 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         setCurrentPlayer(undefined);
         socket.disconnect();
         socket.connect(); // Reconnect
+    }
+
+    function startGame(){
+        console.log("Now starting game");
+        if (currentGame)
+            socket.emit('startGame', { game: currentGame, roomId: currentRoom?.id });
     }
 
     useEffect(() =>{
@@ -133,6 +152,14 @@ function SocketProvider({children}: {children: React.ReactNode}) {
                 navigate('/');
         }
 
+        function onGameStart(game: Game){ setCurrentGame(game); }
+        
+        // Adjust the time left on the current game
+        function onTimeDecrease(newTime: number){
+            console.log(newTime);
+            if (currentGame) setCurrentGame({...currentGame, timeLeft: newTime});
+        }
+
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
         socket.on('playerJoined', onPlayerJoined);
@@ -143,6 +170,8 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         socket.on('joinedRoom', onJoinedRoom);
         socket.on('nameTaken', onNameTaken);
         socket.on('exitRoom', onExitRoom);
+        socket.on('gameStarted', onGameStart);
+        socket.on('timeDecrease', onTimeDecrease);
 
         return () =>{
             socket.off('connect', onConnect);
@@ -155,6 +184,8 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             socket.off('joinedRoom', onJoinedRoom);
             socket.off('nameTaken', onNameTaken);
             socket.off('exitRoom', onExitRoom);
+            socket.off('gameStarted', onGameStart);
+            socket.off('timeDecrease', onTimeDecrease);
         }
     }, []);
 
@@ -165,7 +196,9 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             events, setEvents, 
             isConnected, setIsConnected, 
             joinRoom, createRoom, leaveRoom,
-            currentRoom, setCurrentRoom
+            startGame,
+            currentRoom, setCurrentRoom,
+            currentGame, setCurrentGame
         }}>
             {children}
         </SocketContext.Provider>
