@@ -22,6 +22,7 @@ export type RoomDetails = {
 }
 
 export type Game = {
+    name: "SketchAndVote"; // Acts like a string enum, more values will be added as more minigames are added
     timeLeft: number;
     maxTime: number;
 }

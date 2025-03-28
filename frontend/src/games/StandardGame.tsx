@@ -33,9 +33,9 @@ function StandardGame({gameFinishedPath = "/"}: StandardGameProps) {
         return 'text-green-600';
     }, [currentGame]);
 
-    useEffect(() =>{
-        if (currentGame && currentGame.timeLeft <= 0) navigate(gameFinishedPath);
-    }, [currentGame]);
+    // useEffect(() =>{
+    //     console.log(currentGame);
+    // }, [currentGame]);
 
     return (
         <div className='game size-full flex flex-col items-center justify-center'>

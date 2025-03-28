@@ -34,7 +34,7 @@ function ManageRoom() {
 
     // Placeholder for now, eventually let users pick the game type
     useEffect(() =>{
-        setCurrentGame({timeLeft: 60, maxTime: 60});
+        setCurrentGame({timeLeft: 60, maxTime: 60, name: 'SketchAndVote'});
     }, []);
 
     useEffect(() =>{

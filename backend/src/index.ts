@@ -139,8 +139,7 @@ function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
                 }
                 else{
                     currentGame.timeLeft -= 1; // Subtract one second from the game
-                    console.log(currentGame);
-                    io.to(roomID).emit('timeDecrease', currentGame.timeLeft); // Let the user
+                    io.to(roomID).emit('timeDecrease', currentGame.timeLeft); // Let the player know the current time left
                 }
             }, 1000); // Execute every 1000 ms
         });

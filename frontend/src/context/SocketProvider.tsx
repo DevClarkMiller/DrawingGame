@@ -152,11 +152,19 @@ function SocketProvider({children}: {children: React.ReactNode}) {
                 navigate('/');
         }
 
-        function onGameStart(game: Game){ setCurrentGame(game); }
+        function onGameStart(game: Game){
+            console.log("Game starting", game);
+            setCurrentGame(game); 
+            // Navigate the player based off the gamemode
+            switch(game.name){
+                case 'SketchAndVote': navigate("/standardGame");
+                    break;
+            }
+        }
         
         // Adjust the time left on the current game
         function onTimeDecrease(newTime: number){
-            console.log(newTime);
+            console.log(currentGame);
             if (currentGame) setCurrentGame({...currentGame, timeLeft: newTime});
         }
 
