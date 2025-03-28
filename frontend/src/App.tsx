@@ -22,7 +22,7 @@ function App() {
         <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
           <Routes>
             <Route path="/joinRoom" element={<JoinRoom />} />
-            <Route path="/createRoom" element={<CreateRoom />} />
+            <Route path="/" element={<CreateRoom />} />
             <Route path="/manageRoom" element={<ManageRoom />} />
             <Route path="/viewRoom" element={<ViewRoom />}/>
             <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>

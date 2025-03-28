@@ -22,10 +22,16 @@ const io = new Server(server, {
     }
 });
 
+type Message = {
+    author: string;
+    text: string;
+}
+
 type RoomDetails = {
     room: Room;
     host: Player;
     players: Player[]; // All the players in the room
+    messages: Message[];
 }
 
 // Change to use redis in production
@@ -49,6 +55,7 @@ function endRoom(player: Player, socket: Socket<DefaultEventsMap, DefaultEventsM
         socket.emit("cantEndRoom", `Can't end room [${player.roomId}], you're not the host`);
     }
 
+    io.to(player.roomId).emit('exitRoom', "Please exit the room now");
     rooms.delete(player.roomId);
     socket.emit('endedRoom', `${player.roomId} has been ended`);
 }
@@ -61,7 +68,7 @@ io.on('connection', (socket) =>{
         const host: Player = {roomId, name: hostName, isHost: true};
 
         console.log(`CREATING ROOM ${roomId}`);
-        rooms.set(roomId, {host, room: newRoom, players: [host]}); // Init with an array containing only the host
+        rooms.set(roomId, {host, room: newRoom, players: [host], messages: []}); // Init with an array containing only the host
 
         socket.join(roomId);
 

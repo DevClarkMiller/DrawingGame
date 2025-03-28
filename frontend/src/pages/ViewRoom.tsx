@@ -6,6 +6,7 @@ import { FaLink } from 'react-icons/fa';
 
 // Components
 import PlayersList from '../components/PlayersList';
+import RoomHeader from '../components/RoomHeader';
 
 // Context
 import { SocketContext } from '../context/SocketProvider';
@@ -32,10 +33,12 @@ function ViewRoom() {
     }, [currentRoom]);
 
     return (
-        <div className='w-full flex flex-col items-center gap-3'>
-            <h2 className='font-bold borderb-2 border-black pb-5 text-3xl'>Manage Room</h2>
-            <PlayersList className='size-full lg:w-1/2'/>
-            <button onClick={onCopyInvite} className='flex items-center gap-3 nice-trans'><span>Copy Invite</span><FaLink className={`text-xl ${inviteColor}`}/></button>
+        <div className='card card-gradient'>
+            <div className='inner-card justify-between p-5'>
+                <RoomHeader to='/joinRoom'>Room</RoomHeader>
+                <PlayersList className='size-full lg:w-1/2 flex-grow'/>
+                <button onClick={onCopyInvite} className='flex items-center gap-3 nice-trans'><span>Copy Invite</span><FaLink className={`text-xl ${inviteColor}`}/></button>
+            </div>
         </div>
     );
 }

@@ -6,6 +6,7 @@ import { FaLink } from "react-icons/fa";
 
 // Components
 import PlayersList from '../components/PlayersList';
+import RoomHeader from '../components/RoomHeader';
 
 // Context
 import { SocketContext } from '../context/SocketProvider';
@@ -29,17 +30,18 @@ function ManageRoom() {
     }
 
     useEffect(() =>{
-        if (!loading && !currentRoom)
-            navigate('/createRoom');
+        if (!loading && !currentRoom) navigate('/');
     }, [currentRoom]);
 
     return (
-        <div className='w-full flex flex-col items-center gap-3'>
-            <h2 className='font-bold borderb-2 border-black pb-5 text-3xl'>Manage Room</h2>
-            <PlayersList className='size-full lg:w-1/2'/>
-            <div className='flex gap-3'>
-                <button className={`nice-trans text-white ${canStart ? "!bg-green-500" : "!bg-red-500"}`} onClick={() => console.log("CLICK")} disabled={!canStart}>Start</button>
-                <button onClick={onCopyInvite} className='flex items-center gap-3 nice-trans'><span>Copy Invite</span><FaLink className={`text-xl ${inviteColor}`}/></button>
+        <div className='card card-gradient'>
+            <div className='inner-card justify-between p-5'>
+                <RoomHeader to='/'>Manage Room</RoomHeader>
+                <PlayersList className='size-full lg:w-1/2 flex-grow'/>
+                <div className='flex gap-3'>
+                    <button className={`nice-trans text-white ${canStart ? "!bg-green-500" : "!bg-red-500"}`} onClick={() => console.log("CLICK")} disabled={!canStart}>Start</button>
+                    <button onClick={onCopyInvite} className='flex items-center gap-3 nice-trans'><span>Copy Invite</span><FaLink className={`text-xl ${inviteColor}`}/></button>
+                </div>
             </div>
         </div>
     );

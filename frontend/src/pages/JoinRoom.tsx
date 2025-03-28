@@ -1,51 +1,20 @@
 import React, { useContext, InputHTMLAttributes, LabelHTMLAttributes, useMemo, useState, useEffect } from 'react'
+import { Link } from 'react-router-dom';
 
 // Lib
 import randomName from '../lib/randomName';
 
+// Components
+import InputRow from '../components/InputRow';
+
+// Icons
+import { FaPlay } from "react-icons/fa";
+
 // Context
 import { SocketContext } from '../context/SocketProvider';
 
-type LabeledInputProps = {
-    name: string;
-    labelClassName?: string;
-    inputClassName?: string;
-    children: React.ReactNode;
-    labelProps?: LabelHTMLAttributes<HTMLLabelElement>;
-    inputProps?: InputHTMLAttributes<HTMLInputElement>;
-};
-
-
-function LabeledInput(
-    {name = "", labelClassName = "", inputClassName = "", children, labelProps, inputProps}: LabeledInputProps
-){
-    return (
-        <div className='flex items-center gap-5'>
-            <label htmlFor={name} className={labelClassName} {...labelProps}>{children}</label>
-            <input id={name} name={name} className={inputClassName} {...inputProps}></input>
-        </div>
-    );
-}
-
-type InputRowProps = {
-    name: string;
-    labelClassName?: string;
-    inputClassName?: string;
-    children: React.ReactNode;
-    labelProps?: LabelHTMLAttributes<HTMLLabelElement>;
-    inputProps?: InputHTMLAttributes<HTMLInputElement>;
-};
-function InputRow({name = "", labelClassName = "", inputClassName = "", children, labelProps, inputProps}: InputRowProps){
-    return(
-        <tr>
-            <th className='flex'><label htmlFor={name} className={`w-full h-full text-left ${labelClassName}`} {...labelProps}>{children}</label></th>
-            <td className='pb-5 text-center w-fit'><input id={name} name={name} className={inputClassName} {...inputProps}></input></td>
-        </tr>
-    );
-}
-
 function JoinRoom() {
-    const { joinRoom } = useContext(SocketContext);
+    const { joinRoom, setPlayers, leaveRoom } = useContext(SocketContext);
     const initialRoomId = useMemo(() =>{
         const query = new URLSearchParams(location.search);
         return query.get('roomId') || "";
@@ -61,35 +30,47 @@ function JoinRoom() {
         joinRoom(name, roomId);
     }
 
+    // Empty out the player in case of stale state
+    useEffect(() =>{ 
+        setPlayers([]); 
+        leaveRoom();
+    }, []);
+
     return (
-        <form className='w-5/6 lg:w-1/2 flex flex-col items-center justify-center gap-3 bg-secondary p-5 rounded' onSubmit={onJoin}>
-            <table className='w-full'>
-                <tbody className='font-semibold'>
-                    <InputRow 
-                        name='Name'
-                        inputClassName='bg-white rounded text-input'
-                        inputProps={{
-                            placeholder: "Cool name goes here",
-                            value: name,
-                            onChange: e => setName(e.target.value),
-                            required: true
-                        }}
-                    >Name</InputRow>
-                    {!initialRoomId &&
+        <form className='w-full h-full lg:w-2/3 flex flex-col flex-grow items-center justify-between gap-3 card-gradient p-5 rounded-lg' onSubmit={onJoin}>
+            <div className='h-full w-full flex flex-col justify-center items-center flex-grow p-2 bg-secondary rounded-lg shadow-lg ring-1 backdrop-blur-lg opacity-90'>
+                <h2 className='mb-6 text-xl font-bold'>Choose your name and join a room 🥳</h2>
+                <table className='w-full md:w-2/3 lg:w-1/2'>
+                    <tbody className='font-semibold'>
                         <InputRow 
-                            name='RoomId'
-                            inputClassName='bg-white rounded text-input'
+                            name='Name'
+                            inputClassName='text-input'
                             inputProps={{
-                                placeholder: "RoomID goes here",
-                                value: roomId,
-                                onChange: e => setRoomId(e.target.value),
+                                placeholder: "Cool name goes here",
+                                value: name,
+                                onChange: e => setName(e.target.value),
                                 required: true
                             }}
-                        >Room ID</InputRow>
-                    }
-                </tbody>
-            </table>
-            <button type='submit'>Join Room</button>
+                        >Name</InputRow>
+                        {!initialRoomId &&
+                            <InputRow 
+                                name='RoomId'
+                                inputClassName='text-input'
+                                inputProps={{
+                                    placeholder: "RoomID goes here",
+                                    value: roomId,
+                                    onChange: e => setRoomId(e.target.value),
+                                    required: true
+                                }}
+                            >Room ID</InputRow>
+                        }
+                    </tbody>
+                </table>
+                <div className='flex items-center gap-3'>
+                    <button type='submit' className='flex items-center gap-3'><span>Join Room</span><FaPlay /></button>
+                    <Link to="/" className="underline text-xl">Create Room</Link>
+                </div>
+            </div>
         </form>
     );
 }

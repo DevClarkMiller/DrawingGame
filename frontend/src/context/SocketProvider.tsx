@@ -26,6 +26,7 @@ export type SocketContextType = {
     // Functions
     joinRoom: (name: string, roomId: string) => void;
     createRoom: (hostName: string) => void;
+    leaveRoom: () => void;
 }
 
 export const SocketContext = createContext<SocketContextType>({
@@ -36,6 +37,7 @@ export const SocketContext = createContext<SocketContextType>({
     events: [],
     joinRoom: () => {},
     createRoom: () => {},
+    leaveRoom: () => {},
     setIsConnected: () => {}, 
     setEvents: () => {},
     setCurrentRoom: () => {},
@@ -62,6 +64,12 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     function createRoom(hostName: string){
         setLoading(true);
         socket.emit("createRoom", hostName);
+    }
+
+    function leaveRoom(){
+        setLoading(true);
+        socket.disconnect();
+        socket.connect(); // Reconnect
     }
 
     useEffect(() =>{
@@ -113,6 +121,11 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             alert(msg);
         }
 
+        function onExitRoom(msg: string){
+            console.log(msg);
+            navigate('/');
+        }
+
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
         socket.on('playerJoined', onPlayerJoined);
@@ -122,6 +135,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         socket.on('playerList', onPlayerList);
         socket.on('joinedRoom', onJoinedRoom);
         socket.on('nameTaken', onNameTaken);
+        socket.on('exitRoom', onExitRoom);
 
         return () =>{
             socket.off('connect', onConnect);
@@ -133,6 +147,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             socket.off('playerList', onPlayerList);
             socket.off('joinedRoom', onJoinedRoom);
             socket.off('nameTaken', onNameTaken);
+            socket.off('exitRoom', onExitRoom);
         }
     }, []);
 
@@ -142,7 +157,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             players, setPlayers,
             events, setEvents, 
             isConnected, setIsConnected, 
-            joinRoom, createRoom,
+            joinRoom, createRoom, leaveRoom,
             currentRoom, setCurrentRoom
         }}>
             {children}
