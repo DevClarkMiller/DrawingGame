@@ -1,4 +1,4 @@
-import React, { useContext, InputHTMLAttributes, LabelHTMLAttributes, useMemo, useState, useEffect } from 'react'
+import React, { useContext, useMemo, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom';
 
 // Lib
@@ -6,6 +6,7 @@ import randomName from '../../lib/randomName';
 
 // Components
 import InputRow from '../components/InputRow';
+import EnterRoomButton from '../components/EnterRoomButton';
 
 // Icons
 import { FaPlay } from "react-icons/fa";
@@ -14,7 +15,7 @@ import { FaPlay } from "react-icons/fa";
 import { SocketContext } from '../context/SocketProvider';
 
 function JoinRoom() {
-    const { joinRoom, setPlayers, leaveRoom } = useContext(SocketContext);
+    const { joinRoom, setPlayers, leaveRoom, currentRoom } = useContext(SocketContext);
     const initialRoomId = useMemo(() =>{
         const query = new URLSearchParams(location.search);
         return query.get('roomId') || "";
@@ -24,6 +25,12 @@ function JoinRoom() {
     const [name, setName] = useState<string>(randomName());
     const [roomId, setRoomId] = useState<string>(initialRoomId);
 
+    // If player clicks back button, prepopulate the roomID input field
+    useEffect(() => {
+        if (currentRoom){
+            setRoomId(currentRoom.id);
+        }
+    }, [currentRoom]);
 
     function onJoin(e: React.SyntheticEvent<HTMLFormElement>){
         e.preventDefault();
@@ -66,10 +73,7 @@ function JoinRoom() {
                         }
                     </tbody>
                 </table>
-                <div className='flex items-center gap-3'>
-                    <button type='submit' className='flex items-center gap-3'><span>Join Room</span><FaPlay /></button>
-                    <Link to="/" className="underline text-xl">Create Room</Link>
-                </div>
+                <EnterRoomButton to='/' linkText='Create Room'>Join Room</EnterRoomButton>
             </div>
         </form>
     );

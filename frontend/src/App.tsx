@@ -7,8 +7,10 @@ import ManageRoom from "./pages/ManageRoom";
 import ViewRoom from "./pages/ViewRoom";
 import SketchAndVoteLand from './games/sketchAndVote/SketchAndVoteLand';
 
+// Testing
+import StandardGame from "./games/StandardGame";
+
 // Components
-import Canvas from "./components/Canvas";
 import Header from "./components/Header";
 
 // Context
@@ -26,6 +28,7 @@ function App() {
             <Route path="/manageRoom" element={<ManageRoom />} />
             <Route path="/viewRoom" element={<ViewRoom />}/>
             <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
+            <Route path="/standardGame" element={<StandardGame timeLeft={60} maxTime={60} />}/>
           </Routes>
         </main>
         {/* <Canvas height={500} width={500} /> */}

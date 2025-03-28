@@ -64,8 +64,6 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         socket.emit("joinRoom", player);
     }
 
-    useEffect(() => console.log(currentPlayer), [currentPlayer]);
-
     function createRoom(hostName: string){
         setCurrentPlayer({name: hostName, roomId: "", isHost: true});
         setLoading(true);
@@ -129,8 +127,10 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         }
 
         function onExitRoom(msg: string){
-            console.log(msg);
-            navigate('/');
+            if (currentPlayer)
+                navigate(currentPlayer.isHost ? "/" : "/joinRoom");
+            else
+                navigate('/');
         }
 
         socket.on('connect', onConnect);

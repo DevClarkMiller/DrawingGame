@@ -1,10 +1,15 @@
 import React, { useContext, useState, useEffect } from 'react'
+import { Link } from 'react-router-dom';
 
 // Lib
 import randomName from '../../lib/randomName';
 
 // Components
 import LabeledInput from '../components/LabeledInput';
+import EnterRoomButton from '../components/EnterRoomButton';
+
+// Icons
+import { FaPlay } from "react-icons/fa";
 
 // Context
 import { SocketContext } from '../context/SocketProvider';
@@ -34,6 +39,7 @@ function CreateRoom() {
              <h2 className='mb-6 text-xl font-bold'>You're the boss, just pick a good name 😛</h2>
                 <LabeledInput 
                     inputClassName='bg-white rounded text-input'   
+                    labelClassName='font-bold'
                     inputProps={{
                         required: true,
                         value: hostName,
@@ -41,7 +47,7 @@ function CreateRoom() {
                     }}      
                     name='HostName'>
                 Name</LabeledInput>
-                <button type='submit'>Create Room</button>
+                <EnterRoomButton to='/joinRoom' linkText='Join Room'>Create Room</EnterRoomButton>
             </div>
         </form>
     );
