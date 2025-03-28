@@ -64,7 +64,10 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         socket.emit("joinRoom", player);
     }
 
+    useEffect(() => console.log(currentPlayer), [currentPlayer]);
+
     function createRoom(hostName: string){
+        setCurrentPlayer({name: hostName, roomId: "", isHost: true});
         setLoading(true);
         socket.emit("createRoom", hostName);
     }
@@ -86,6 +89,8 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         }
 
         function createdRoom(room: Room){
+            if (currentPlayer) // Player will be given a name and has the isHost boolean set before this is called
+                setCurrentPlayer({...currentPlayer, roomId: room.id}); // Set the roomId on current player
             setCurrentRoom(room);
             setLoading(false);
             navigate('/manageRoom');
@@ -100,10 +105,11 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
         function onPlayerJoined(player: Player){         
             if (player.name != currentPlayer?.name)   
-            setPlayers(prevPlayers =>  [...prevPlayers as Player[], player]); 
+                setPlayers(prevPlayers =>  [...prevPlayers as Player[], player]); 
         }
 
         function roomNotFound(msg: string){
+            setCurrentPlayer(undefined);
             alert(msg);
         }
 
@@ -113,6 +119,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
         // Is called when the player joins, gives them a list of everyone in the room
         function onPlayerList(playerList: Player[]){
+            console.log();
             setPlayers(playerList);
         }
 

@@ -28,8 +28,7 @@ function ViewRoom() {
     }
 
     useEffect(() =>{
-        if (!loading && !currentRoom)
-            navigate('/createRoom');
+        if (!loading && !currentRoom) navigate('/');
     }, [currentRoom]);
 
     return (

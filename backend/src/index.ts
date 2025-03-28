@@ -89,13 +89,14 @@ io.on('connection', (socket) =>{
 
         players.set(socket.id, player);
 
-        socket.join(player.roomId);
-        player.isHost = false;
-
         // When a player joins, they should also recieve a list of all the other players
         socket.emit("playerList", roomDetails.players);
         socket.emit("joinedRoom", roomDetails.room);
         io.to(player.roomId).emit("playerJoined", player);
+
+        // Only set the player to be in the room after, so that they don't recieve the new player joining after they recieve the player list
+        socket.join(player.roomId);
+        player.isHost = false;
     });
 
     // Starts a specific game depending on the one provided
