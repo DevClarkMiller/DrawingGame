@@ -1,11 +1,10 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { useNavigate, NavigateFunction } from 'react-router-dom';
 
 // Icons
 import { FaLink } from "react-icons/fa";
 
 // Types
-import { Game } from '../def';
 import { GameActionKind } from '../reducers/gameReducer';
 
 // Components

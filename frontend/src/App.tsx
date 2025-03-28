@@ -28,10 +28,9 @@ function App() {
             <Route path="/manageRoom" element={<ManageRoom />} />
             <Route path="/viewRoom" element={<ViewRoom />}/>
             <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
-            <Route path="/standardGame" element={<StandardGame gameFinishedPath="/" />}/>
+            <Route path="/standardGame" element={<StandardGame />}/>
           </Routes>
         </main>
-        {/* <Canvas height={500} width={500} /> */}
       </SocketProvider>
     </div>
   );

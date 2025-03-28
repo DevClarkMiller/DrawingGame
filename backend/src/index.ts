@@ -48,6 +48,14 @@ function endRoom(player: Player, socket: Socket<DefaultEventsMap, DefaultEventsM
     socket.emit('endedRoom', `${player.roomId} has been ended`);
 }
 
+function endGame(roomId: string){
+    const game: Game | undefined = games.get(roomId);
+
+    if (!game) return; // Means no game is found
+    game.running = false; // Stop the game from running
+    io.to(roomId).emit("gameEnded", "Game is over"); // Placeholder until I determine what data needs to be sent over
+}
+
 // Creates all the callbacks related to managing a room
 function manageRoom(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>){
     socket.on('createRoom', (hostName: string) =>{
@@ -76,24 +84,6 @@ function manageRoom(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
         if (roomDetails){
             roomDetails.messages.push(msg);
             io.to(player.roomId).emit('newMessage', msg);
-        }
-    });
-
-    socket.on('disconnect', () => {
-        const player: Player | undefined = players.get(socket.id);
-        if (player){
-            players.delete(socket.id);
-            console.log(`Player ${player.name} disconnected`);
-
-            const roomDetails: RoomDetails | undefined = rooms.get(player.roomId);
-            if (roomDetails){
-                // Remove player from the list
-                roomDetails.players = roomDetails.players.filter(pl => pl.name !== player.name);
-            }
-
-            // Delete the room when the host disconnects POTENTIALLY REMAP THE HOST INSTEAD TO A DIFFERENT PLAYER
-            if (player.isHost) endRoom(player, socket);
-            io.to(player.roomId).emit('playerLeft', player);
         }
     });
 
@@ -127,13 +117,34 @@ function manageRoom(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
         socket.join(player.roomId);
         player.isHost = false;
     });
+
+    socket.on('disconnect', () => {
+        const player: Player | undefined = players.get(socket.id);
+        if (player){
+            players.delete(socket.id);
+            console.log(`Player ${player.name} disconnected`);
+
+            const roomDetails: RoomDetails | undefined = rooms.get(player.roomId);
+            if (roomDetails){
+                // Remove player from the list
+                roomDetails.players = roomDetails.players.filter(pl => pl.name !== player.name);
+            }
+
+            // Delete the room when the host disconnects POTENTIALLY REMAP THE HOST INSTEAD TO A DIFFERENT PLAYER
+            if (player.isHost) {
+                endRoom(player, socket);
+                endGame(player.roomId); // Here any game will be ended too
+            }
+            io.to(player.roomId).emit('playerLeft', player);
+        }
+    });
 }
 
 function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>){
     async function startGame(currentGame: Game, roomID: string): Promise<void>{ // Create a promise which resolves once the interval is complete
         return new Promise<void>((resolve) =>{
             const interval = setInterval(() => {
-                if (currentGame.timeLeft <= 0){
+                if (currentGame.timeLeft <= 0 || !currentGame.running){ // If time runs out or game is stopped, quit interval
                     clearInterval(interval);
                     resolve();   
                 }
@@ -145,6 +156,8 @@ function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
         });
     }
 
+    socket.on('endGame', (roomId: string) =>{ endGame(roomId); });
+
     // Starts a specific game depending on the one provided
     socket.on('startGame', async ({game, roomId}: {game: Game, roomId: string}) =>{
         games.set(roomId, game);
@@ -154,9 +167,12 @@ function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
         const currentGame: Game | undefined = games.get(roomId);
         if (!currentGame) return;
 
+        currentGame.running = true;
+
         // First emit that the game has started
         io.to(roomId).emit('gameStarted', game);
         await startGame(currentGame, roomId);
+        io.to(roomId).emit("gameEnded", "Game is over"); // Placeholder until I determine what data needs to be sent over
         console.log("GAME OVER!!");
     });
 }

@@ -1,11 +1,11 @@
 import {Game} from '../def';
 
 export enum GameActionKind{
-    SET_TIMELEFT = 'SET_TIMELEFT',
-    SET_GAME = 'SET_GAME'
+    SET_TIMELEFT = 1,
+    SET_GAME = 2
 }
 
-export const INITIAL_GAME: Game = { maxTime: 60, timeLeft: 60, name: "SketchAndVote" };
+export const INITIAL_GAME: Game = { maxTime: 60, timeLeft: 60, name: "SketchAndVote", running: false };
 
 export interface GameAction{
     type: GameActionKind;
