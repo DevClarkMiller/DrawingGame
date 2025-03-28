@@ -2,7 +2,7 @@ import React, { useContext, InputHTMLAttributes, LabelHTMLAttributes, useMemo, u
 import { Link } from 'react-router-dom';
 
 // Lib
-import randomName from '../lib/randomName';
+import randomName from '../../lib/randomName';
 
 // Components
 import InputRow from '../components/InputRow';

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react'
 
 // Lib
-import randomName from '../lib/randomName';
+import randomName from '../../lib/randomName';
 
 // Components
 import LabeledInput from '../components/LabeledInput';
