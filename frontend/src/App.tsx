@@ -1,4 +1,8 @@
+import { useMemo, createContext } from "react";
 import { Route, Routes } from "react-router-dom";
+
+// Lib
+import { DevelopmentLogger, ProductionLogger, Logger } from '@lib/logger';
 
 // Pages
 import JoinRoom from "@pages/JoinRoom";
@@ -16,21 +20,37 @@ import Header from "@components/Header";
 // Context
 import SocketProvider from "@context/SocketProvider";
 
+export type AppContextType = {
+  logger: Logger;
+}
+
+export const AppContext = createContext({} as AppContextType);
+
 function App() {
+  const logger: Logger = useMemo(() =>{
+    if ((process.env.ENV || "DEV") === 'DEV'){
+      return new DevelopmentLogger();
+    }else{
+      return new ProductionLogger();
+    }
+  }, []);
+
   return (
     <div className="size-full min-h-screen text-main flex flex-col items-center justify-center flex-grow">
-      <SocketProvider>
-        <Header />
-        <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
-          <Routes>
-            <Route path="/joinRoom" element={<JoinRoom />} />
-            <Route path="/" element={<CreateRoom />} />
-            <Route path="/manageRoom" element={<ManageRoom />} />
-            <Route path="/viewRoom" element={<ViewRoom />}/>
-            <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
-            <Route path="/standardGame" element={<StandardGame />}/>
-          </Routes>
-        </main>
+      <SocketProvider logger={logger}>
+        <AppContext.Provider value={{logger: logger}}>
+          <Header />
+          <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
+            <Routes>
+              <Route path="/joinRoom" element={<JoinRoom />} />
+              <Route path="/" element={<CreateRoom />} />
+              <Route path="/manageRoom" element={<ManageRoom />} />
+              <Route path="/viewRoom" element={<ViewRoom />}/>
+              <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
+              <Route path="/standardGame" element={<StandardGame />}/>
+            </Routes>
+          </main>
+        </AppContext.Provider>
       </SocketProvider>
     </div>
   );

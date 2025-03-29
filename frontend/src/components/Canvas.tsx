@@ -1,122 +1,59 @@
-import  React, { useEffect, useRef, useState, useCallback, useMemo, Dispatch } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo, useReducer } from 'react';
 
-// Icons
-import { IoArrowUndo, IoArrowRedo, IoTrash, IoColorFill } from "react-icons/io5";
+// Types
+import { PixelManager, Coord, Color } from '@def';
+
+// Components
+import CanvasToolBar from './CanvasToolBar';
+
+// Reducers
+import {ActionKind, INITIAL, reducer} from '@reducers/canvasReducer';
 
 interface CanvasProps {
     height: number;
     width: number;
 }
 
-type Coord = {
-    x: number;
-    y: number;
-}
-
-interface ToolBarProps{
-    setStrokeStyle: Dispatch<string>;
-    setLineWidth: React.Dispatch<React.SetStateAction<number>>;
-    setUsingFill: Dispatch<React.SetStateAction<boolean>>;
-
-    maxLineWidth?: number;
-    strokeStyle: string;
-    lineWidth: number;
-
-    deleteCanvas: () => void;
-    undo: () => void;
-    redo: () => void;
-    clearCanvas: () => void;
-
-    canUndo: boolean;
-    canRedo: boolean;
-    usingFill: boolean;
-}
-
-// TODO: MOVE ALL METHODS OVER HERE
-class CanvasController{
-    public canvasRef: React.RefObject<HTMLCanvasElement | null>;
-
-    public constructor(canvasRef: React.RefObject<HTMLCanvasElement | null>){
-        this.canvasRef = canvasRef;
-    }
-}
-
-const ToolBar = ({
-    deleteCanvas, undo, redo, clearCanvas, canUndo, canRedo, lineWidth, setLineWidth, maxLineWidth = 8, strokeStyle, setStrokeStyle, usingFill, setUsingFill, ...props
-}: ToolBarProps) =>{
-    function onChangeWidth(e: React.ChangeEvent<HTMLInputElement>){ 
-        const num = parseInt(e.target.value);
-        if (num > 0 && num <= maxLineWidth)
-            setLineWidth(num);
-    }
-
-    function onChangeColor(e: React.ChangeEvent<HTMLInputElement>){ setStrokeStyle(e.target.value); }
-
-    function onClickFill(){ setUsingFill(!usingFill);}
-
-    return(
-        <div className="flex gap-5 justify-center px-12">
-            <button onClick={deleteCanvas}><IoTrash /></button>
-            <div className='drawOptions flex gap-5 items-center'>
-                <input className='bg-white rounded h-full w-2/3 pl-1' min={1} max={maxLineWidth} value={lineWidth} onChange={onChangeWidth} type='number' />
-                <input className='h-full' onChange={onChangeColor} type='color'/>
-                <button onClick={onClickFill} style={{color: usingFill ? "green": "" }}><IoColorFill /></button>
-            </div>
-            <div className='undoRedo flex gap-5'>
-                <button disabled= {!canUndo} onClick={undo}><IoArrowUndo /></button>
-                <button disabled= {!canRedo} onClick={redo}><IoArrowRedo /></button>
-            </div>
-        </div>
-    );
-}
-
-interface Color{
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-}
 
 const Canvas = (props: CanvasProps) =>{
     // Refs
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    // State
-    const [isPainting, setIsPainting] = useState<boolean>(false);
-    const [mousePos, setMousePos] = useState<Coord | null>(null);
-
-    const [currentImage, setCurrentImage] = useState<string | null>(null);
-
-    const [canvasController, setCanvasController] = useState<CanvasController>(new CanvasController(canvasRef));
-
-    // Drawing options
-    const [usingFill, setUsingFill] = useState<boolean>(false);
-    const [strokeStyle, setStrokeStyle] = useState<string>('#000000');
-    const [lineWidth, setLineWidth] = useState<number>(5);
-
     // Maintain a stack of actions, when you undo something it goes onto redo and vice-versa
     const [undoStack, setUndoStack] = useState<string[]>([]);
     const [redoStack, setRedoStack] = useState<string[]>([]);
 
+    // Reducers
+    const [state, dispatch] = useReducer(reducer, INITIAL);
+
     // Memoized values
-    const canUndo = useMemo(() => currentImage !== null || undoStack?.length > 0, [undoStack, currentImage]);
+    const canUndo = useMemo(() => state?.currentImage !== null || undoStack?.length > 0, [undoStack, state?.currentImage]);
     const canRedo = useMemo(() => redoStack?.length > 0 ,[redoStack]);
+
+    function setMousePos(mousePos: Coord | null) { dispatch({type: ActionKind.SET_MOUSE_POS, payload: mousePos}); }
+    function setIsPainting(val: boolean) { dispatch({type: ActionKind.SET_PAINTING, payload: val}); }
+    function setCurrentImage(image: string | null) { dispatch({type: ActionKind.SET_CURRENT_IMAGE, payload: image}); }
+
+    // Drawing options
+    function setLineWidth(lineWidth: number) { dispatch({type: ActionKind.SET_LINE_WIDTH, payload: lineWidth}); }
+    function setUsingFill(usingFill: boolean) { dispatch({type: ActionKind.SET_USING_FILL, payload: usingFill}); }
+    function setStrokeStyle(strokeStyle: string) { dispatch({type: ActionKind.SET_STROKE_STYLE, payload: strokeStyle}); }
 
     // Delete the canvas and add it to the undo stack
     function deleteCanvas(){
         clearCanvas();
         setUndoStack([]);
         setRedoStack([]);
-        setCurrentImage(null);
+        dispatch({type: ActionKind.SET_CURRENT_IMAGE}); // Uses the default value of null
     }
 
     /**
      * Brief: Undoes a draw or action
      */
     function undo(){
-        if (undoStack.length === 0 && !currentImage) return;
+        if (undoStack.length === 0 && !state?.currentImage) return;
         // Move current image onto the redo stack
-        setRedoStack([...redoStack as [], String(currentImage)]);
+        setRedoStack([...redoStack as [], String(state?.currentImage)]);
         
         clearCanvas(); // Clear canvas regardless, because if there's no prev items, you will just delete the current screen
         let currItem: string | null = null;
@@ -138,9 +75,9 @@ const Canvas = (props: CanvasProps) =>{
      */
     function redo(){
         // Move current image onto the undo stack
-        if (currentImage)
-            setUndoStack([...undoStack as [], String(currentImage)]);
-        
+        if (state?.currentImage){
+            setUndoStack([...undoStack as [], String(state?.currentImage)]);
+        }
         clearCanvas(); // Clear canvas regardless, because if there's no prev items, you will just delete the current screen
         let currItem: string | null = null;
 
@@ -160,23 +97,6 @@ const Canvas = (props: CanvasProps) =>{
 
         const canvas: HTMLCanvasElement = canvasRef.current;
         return {x: e.pageX - canvas.offsetLeft, y: e.pageY - canvas.offsetTop};
-    }
-
-    const getIndex = (x:number, y: number, width: number): number => {
-        return (y * width + x) * 4;
-    }; 
-   
-    const getPixel = (x:number, y:number, width: number, data: Uint8ClampedArray<ArrayBufferLike>): Color => {
-        const i: number = getIndex(x, y, width);
-        return { r: data[i], g: data[i + 1], b: data[i + 2], a: data[i + 3] };
-    };
-
-    const setPixel = (x: number, y: number, color: Color, width: number, data: Uint8ClampedArray<ArrayBufferLike>) =>{
-        const i = getIndex(x, y, width);
-        data[i] = color.r;
-        data[i + 1] = color.g;
-        data[i + 2] = color.b;
-        data[i + 3] = color.a;
     }
 
     const colorsMatch = (a: Color, b: Color) => {
@@ -209,7 +129,7 @@ const Canvas = (props: CanvasProps) =>{
     /**
      * Brief: My own flood-fill algorithm
      */
-    function floodFill(targetColor: Color, newColor: Color, row: number, col: number, width: number, height: number, data: Uint8ClampedArray<ArrayBufferLike>){
+    function floodFill(targetColor: Color, newColor: Color, row: number, col: number, width: number, height: number, pixelManger: PixelManager){
         const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
         const stk: Coord[] = [{y: row, x: col}];
@@ -220,7 +140,7 @@ const Canvas = (props: CanvasProps) =>{
             if (!point) continue;
             visited.add(`${point?.x}, ${point.y}`);
             // Mark the start as the color
-            setPixel(point.x, point.y, newColor, width, data);
+            pixelManger.setPixel(point.x, point.y, newColor);
 
             // Check if the current pixel isn't the same color
             for (const dir of dirs){
@@ -232,7 +152,7 @@ const Canvas = (props: CanvasProps) =>{
                 if (visited.has(`${x}, ${y}`)) continue;
 
                 // Push onto stack if the pixel isn't the target
-                const pixel = getPixel(x, y, width, data);
+                const pixel = pixelManger.getPixel(x, y);
                 if (colorsMatch(targetColor, pixel))
                     stk.push({x: x, y: y});
             }
@@ -250,12 +170,13 @@ const Canvas = (props: CanvasProps) =>{
 
         if (context) {
             const imageData: ImageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            const data: Uint8ClampedArray<ArrayBufferLike> = imageData.data;
-            const targetColor = getPixel(mousePos.x, mousePos.y, imageData.width, data);
-            const newColor = hexToRgba(strokeStyle);
-            floodFill(targetColor, newColor, mousePos.y, mousePos.x, imageData.width, imageData.height, data);
+            const pixelManger = new PixelManager(imageData.data, imageData.width);
+
+            const targetColor = pixelManger.getPixel(mousePos.x, mousePos.y);
+            const newColor = hexToRgba(state?.strokeStyle);
+            floodFill(targetColor, newColor, mousePos.y, mousePos.x, imageData.width, imageData.height, pixelManger);
             context.putImageData(imageData, 0, 0);
-            setIsPainting(true); // Just for the sake of making exitPaint work
+            dispatch({type: ActionKind.SET_PAINTING, payload: true});
             exitPaint(); // To save this as the current image
         }
     }
@@ -288,9 +209,9 @@ const Canvas = (props: CanvasProps) =>{
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
         if (context){
-            context.strokeStyle = strokeStyle
+            context.strokeStyle = state?.strokeStyle;
             context.lineJoin = "round";
-            context.lineWidth = lineWidth;
+            context.lineWidth = state?.lineWidth;
 
             context.beginPath();
             context.moveTo(mousePos.x, mousePos.y);
@@ -304,24 +225,24 @@ const Canvas = (props: CanvasProps) =>{
     const bucket = useCallback((event: MouseEvent) => {
         const mousePos: Coord | undefined = getCoords(event);
         if (mousePos){
-            if (usingFill)
+            if (state?.usingFill)
                 fillCanvas(mousePos);
             setMousePos(mousePos);
         }                
-    }, [usingFill, mousePos]);
+    }, [state?.usingFill, state?.mousePos]);
 
     const paint = useCallback(
         (event: MouseEvent) => {
-            if (isPainting) {
+            if (state.isPainting) {
                 const newMousePos = getCoords(event);
-                if (mousePos && newMousePos) {
-                    if (!usingFill)
-                        drawLine(mousePos, newMousePos);
+                if (state?.mousePos && newMousePos) {
+                    if (!state?.usingFill)
+                        drawLine(state?.mousePos, newMousePos);
                     setMousePos(newMousePos);
                 }
             }
         },
-        [isPainting, mousePos]
+        [state?.isPainting, state?.mousePos]
     );
 
     // Callback
@@ -335,7 +256,7 @@ const Canvas = (props: CanvasProps) =>{
 
     // Don't do anything if you're not painting in the first place
     const exitPaint = useCallback(() => {
-        if (!isPainting) return;
+        if (!state.isPainting) return;
         setIsPainting(false);
         setMousePos(null);
 
@@ -343,7 +264,7 @@ const Canvas = (props: CanvasProps) =>{
         const canvas: HTMLCanvasElement = canvasRef.current;
         
         // Add the last current canvas onto the undo stack
-        const lastImage = currentImage;
+        const lastImage = state?.currentImage;
         if (lastImage) // Add the current image onto the undostack if it exists
             setUndoStack([...undoStack, lastImage]);
         
@@ -352,7 +273,7 @@ const Canvas = (props: CanvasProps) =>{
 
         // Clear out the redo stack
         setRedoStack([]);
-    }, [canvasRef, isPainting]);
+    }, [canvasRef, state?.isPainting]);
 
     useEffect(() =>{
         if (!canvasRef.current) return;
@@ -409,11 +330,11 @@ const Canvas = (props: CanvasProps) =>{
     return (
         <div className='w-1/2 flex flex-col items-center gap-3'>
             <canvas width={props.width} height={props.height} ref={canvasRef}/>
-            <ToolBar 
-                usingFill={usingFill}
+            <CanvasToolBar 
+                usingFill={state?.usingFill}
                 setUsingFill={setUsingFill}
-                lineWidth={lineWidth}
-                strokeStyle={strokeStyle}
+                lineWidth={state?.lineWidth}
+                strokeStyle={state?.strokeStyle}
                 setStrokeStyle={setStrokeStyle} 
                 setLineWidth={setLineWidth} 
                 deleteCanvas={deleteCanvas} 

@@ -2,6 +2,8 @@ import React, { Dispatch, SetStateAction, createContext, useEffect, useState, us
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
+import { Logger } from '@lib/logger';
+
 // Types
 import { Room, Player, Message, Game } from '@def';
 
@@ -40,7 +42,7 @@ export type SocketContextType = {
 }
 
 export const SocketContext = createContext<SocketContextType>({} as SocketContextType);
-function SocketProvider({children}: {children: React.ReactNode}) {
+function SocketProvider({logger, children}: {logger: Logger, children: React.ReactNode}) {
     const navigate: NavigateFunction = useNavigate();
 
     const socket: Socket = useSocket(process.env.SERVER_URL as string || "http://localhost:5170");
@@ -68,6 +70,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         setCurrentPlayer({name: hostName, roomId: "", isHost: true});
         setLoading(true);
         socket.emit("createRoom", hostName);
+        logger.log("Creating room");
     }
 
     function leaveRoom(){
@@ -78,27 +81,16 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     function startGame(){
-        console.log("Now starting game");
         if (currentGame)
             socket.emit('startGame', { game: currentGame, roomId: currentRoom?.id });
     }
 
-    // Socket event callbacks
-    function onConnect(){
-        setIsConnected(true);
-    }
-
-    function onDisconnect() {
-        setIsConnected(false);
-    }
-
-    function createdRoom(room: Room){
+    function onCreatedRoom(room: Room){
         if (currentPlayer) // Player will be given a name and has the isHost boolean set before this is called
             setCurrentPlayer({...currentPlayer, roomId: room.id}); // Set the roomId on current player
         setCurrentRoom(room);
         setLoading(false);
         navigate('/manageRoom');
-        console.log(room);
     }
 
     function onJoinedRoom(room: Room){
@@ -112,18 +104,13 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             dispatchPlayers({type: Players.ActionKind.ADD_PLAYER, payload: player});
     }
 
-    function roomNotFound(msg: string){
+    function onRoomNotFound(msg: string){
         setCurrentPlayer(undefined);
         alert(msg);
     }
 
-    function playerLeft(player: Player){
+    function onPlayerLeft(player: Player){
         dispatchPlayers({type: Players.ActionKind.REMOVE_PLAYER, payload: player});
-    }
-
-    // Is called when the player joins, gives them a list of everyone in the room
-    function onPlayerList(playerList: Player[]){
-        dispatchPlayers({type: Players.ActionKind.SET_PLAYERS, payload: playerList});
     }
 
     function onNameTaken(msg: string){
@@ -137,7 +124,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     function onGameStart(game: Game){
-        console.log("Game starting", game);
+        logger.log("Game starting", game);
         dispatchGame({type: Games.ActionKind.SET_GAME, payload: game}); // Set the currentGame
         // Navigate the player based off the gamemode
         switch(game.name){
@@ -146,25 +133,28 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         }
     }
 
-    // Adjust the time left on the current game
-    function onTimeDecrease(newTime: number){
-        dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime}); // Update the time left on the game
-    }
-
     useEffect(() =>{
-        const socketEvents: [name: string, callBack: (data: any) => void][] = [
-            ['connect', onConnect],
-            ['disconnect', onDisconnect],
+        // Note that some of the callbacks are defined here, this is if they're simple, else they get their own dedicated function
+        const socketEvents: [name: string, callBack: (...args: any[]) => void][] = [
+            // Standard Socket Events
+            ['connect', () => setIsConnected(true)],
+            ['disconnect', () => setIsConnected(false)],
+
+            // Room Events
             ['playerJoined', onPlayerJoined],
-            ['createdRoom', createdRoom],
-            ['roomNotFound', roomNotFound],
-            ['playerLeft', playerLeft],
-            ['playerList', onPlayerList],
+            ['createdRoom', onCreatedRoom],
+            ['roomNotFound', onRoomNotFound],
+            ['playerLeft', onPlayerLeft],
             ['joinedRoom', onJoinedRoom],
             ['nameTaken', onNameTaken],
             ['exitRoom', onExitRoom],
+            ['playerList', (playerList: Player[]) => dispatchPlayers({type: Players.ActionKind.SET_PLAYERS, payload: playerList})],
+            
+            // Game Events
             ['gameStarted', onGameStart],
-            ['timeDecrease', onTimeDecrease]
+
+            // Update the time left on the game
+            ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})] 
         ];
 
         // Turn on each event
