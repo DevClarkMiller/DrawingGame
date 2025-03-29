@@ -39,24 +39,7 @@ export type SocketContextType = {
     startGame: () => void;
 }
 
-export const SocketContext = createContext<SocketContextType>({
-    players: [],
-    loading: true,
-    currentRoom: undefined,
-    currentGame: undefined,
-    isConnected: false,
-    events: [],
-    joinRoom: () => {},
-    createRoom: () => {},
-    leaveRoom: () => {},
-    startGame: () => {},
-    setIsConnected: () => {}, 
-    setEvents: () => {},
-    setCurrentRoom: () => {},
-    dispatchGame: () => {},
-    dispatchPlayers: () => {},
-    setLoading: () => {},
-});
+export const SocketContext = createContext<SocketContextType>({} as SocketContextType);
 function SocketProvider({children}: {children: React.ReactNode}) {
     const navigate: NavigateFunction = useNavigate();
 
@@ -169,32 +152,31 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     useEffect(() =>{
-        socket.on('connect', onConnect);
-        socket.on('disconnect', onDisconnect);
-        socket.on('playerJoined', onPlayerJoined);
-        socket.on('createdRoom', createdRoom);
-        socket.on('roomNotFound', roomNotFound);
-        socket.on('playerLeft', playerLeft);
-        socket.on('playerList', onPlayerList);
-        socket.on('joinedRoom', onJoinedRoom);
-        socket.on('nameTaken', onNameTaken);
-        socket.on('exitRoom', onExitRoom);
-        socket.on('gameStarted', onGameStart);
-        socket.on('timeDecrease', onTimeDecrease);
+        const socketEvents: [name: string, callBack: (data: any) => void][] = [
+            ['connect', onConnect],
+            ['disconnect', onDisconnect],
+            ['playerJoined', onPlayerJoined],
+            ['createdRoom', createdRoom],
+            ['roomNotFound', roomNotFound],
+            ['playerLeft', playerLeft],
+            ['playerList', onPlayerList],
+            ['joinedRoom', onJoinedRoom],
+            ['nameTaken', onNameTaken],
+            ['exitRoom', onExitRoom],
+            ['gameStarted', onGameStart],
+            ['timeDecrease', onTimeDecrease]
+        ];
+
+        // Turn on each event
+        socketEvents.forEach((socketEvent) =>{
+            socket.on(socketEvent[0], socketEvent[1]);
+        });
 
         return () =>{
-            socket.off('connect', onConnect);
-            socket.off('disconnect', onDisconnect);
-            socket.off('playerJoined', onPlayerJoined);
-            socket.off('createdRoom', createdRoom);
-            socket.off('roomNotFound', roomNotFound);
-            socket.off('playerLeft', playerLeft);
-            socket.off('playerList', onPlayerList);
-            socket.off('joinedRoom', onJoinedRoom);
-            socket.off('nameTaken', onNameTaken);
-            socket.off('exitRoom', onExitRoom);
-            socket.off('gameStarted', onGameStart);
-            socket.off('timeDecrease', onTimeDecrease);
+            // Turn off each event
+            socketEvents.forEach((socketEvent) =>{
+                socket.off(socketEvent[0], socketEvent[1]);
+            });
         }
     }, []);
 

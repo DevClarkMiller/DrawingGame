@@ -1,7 +1,7 @@
 
 /**
- * Brief: Manages the current sketch and vote game
- */
+ * Brief: Manages the current sketch and vote games context
+*/
 
 import { Game, Player } from "@def";
 
