@@ -166,7 +166,7 @@ const Canvas = (props: CanvasProps) =>{
     const fillCanvas = (mousePos: Coord) =>{
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
-        const context = canvas.getContext('2d');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
 
         if (context) {
             const imageData: ImageData = context.getImageData(0, 0, canvas.width, canvas.height);
