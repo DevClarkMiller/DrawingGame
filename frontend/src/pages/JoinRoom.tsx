@@ -9,9 +9,10 @@ import EnterRoomButton from '@components/EnterRoomButton';
 
 // Context
 import { SocketContext } from '@context/SocketProvider';
+import Players from '@reducers/playerReducer';
 
 function JoinRoom() {
-    const { joinRoom, setPlayers, leaveRoom, currentRoom } = useContext(SocketContext);
+    const { joinRoom, dispatchPlayers, leaveRoom, currentRoom } = useContext(SocketContext);
     const initialRoomId = useMemo(() =>{
         const query = new URLSearchParams(location.search);
         return query.get('roomId') || "";
@@ -35,7 +36,7 @@ function JoinRoom() {
 
     // Empty out the player in case of stale state
     useEffect(() =>{ 
-        setPlayers([]); 
+        dispatchPlayers({type: Players.ActionKind.RESET_PLAYERS, payload: null});
         leaveRoom();
     }, []);
 

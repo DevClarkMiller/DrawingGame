@@ -9,10 +9,11 @@ import EnterRoomButton from '@components/EnterRoomButton';
 
 // Context
 import { SocketContext } from '@context/SocketProvider';
+import Players from '@reducers/playerReducer';
 
 function CreateRoom() {
     // Context
-    const { createRoom, setPlayers, leaveRoom } = useContext(SocketContext);
+    const { createRoom, dispatchPlayers, leaveRoom } = useContext(SocketContext);
 
     // State
     const [hostName, setHostName] = useState<string>(randomName());
@@ -25,7 +26,7 @@ function CreateRoom() {
 
     // Empty out the player in case of stale state
     useEffect(() =>{ 
-        setPlayers([]); 
+        dispatchPlayers({type: Players.ActionKind.RESET_PLAYERS, payload: null});
         leaveRoom();
     }, []);
 

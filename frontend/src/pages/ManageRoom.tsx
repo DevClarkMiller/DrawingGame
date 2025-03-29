@@ -5,7 +5,7 @@ import { useNavigate, NavigateFunction } from 'react-router-dom';
 import { FaLink } from "react-icons/fa";
 
 // Types
-import { GameActionKind } from '@reducers/gameReducer';
+import Games from '@reducers/gameReducer';
 
 // Components
 import PlayersList from '@components/PlayersList';
@@ -34,7 +34,7 @@ function ManageRoom() {
 
     // Placeholder for now, eventually let users pick the game type
     useEffect(() =>{
-        dispatchGame({type: GameActionKind.SET_GAME, payload: {timeLeft: 60, maxTime: 60, name: 'SketchAndVote'}});
+        dispatchGame({type: Games.ActionKind.SET_GAME, payload: {timeLeft: 60, maxTime: 60, name: 'SketchAndVote'}});
     }, []);
 
     useEffect(() =>{

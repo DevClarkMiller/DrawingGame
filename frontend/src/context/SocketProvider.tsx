@@ -6,7 +6,9 @@ import { Socket } from 'socket.io-client';
 import { Room, Player, Message, Game } from '@def';
 
 // Reducers
-import { INITIAL_GAME, gameReducer, GameActionKind, GameAction } from '@reducers/gameReducer';
+import Games from '@reducers/gameReducer';
+import Players from '@reducers/playerReducer';
+import SketchAndVote from '@reducers/sketchVoteReducer';
 
 // Custom hooks
 import { useSocket } from '@hooks/useSocket';
@@ -24,11 +26,9 @@ export type SocketContextType = {
     setIsConnected: Dispatch<SetStateAction<boolean>>;
     setEvents: Dispatch<SetStateAction<any[]>>;
     setCurrentRoom: Dispatch<SetStateAction<Room | undefined>>;
-    dispatchGame: React.ActionDispatch<[action: GameAction]>;
+    dispatchGame: React.ActionDispatch<[action: Games.Action]>;
+    dispatchPlayers: React.ActionDispatch<[action: Players.Action]>;
     setLoading: Dispatch<SetStateAction<boolean>>;
-    setPlayers: Dispatch<SetStateAction<Player[]>>;
-
-    // Functions
 
     // Room management
     joinRoom: (name: string, roomId: string) => void;
@@ -54,8 +54,8 @@ export const SocketContext = createContext<SocketContextType>({
     setEvents: () => {},
     setCurrentRoom: () => {},
     dispatchGame: () => {},
+    dispatchPlayers: () => {},
     setLoading: () => {},
-    setPlayers: () => {}
 });
 function SocketProvider({children}: {children: React.ReactNode}) {
     const navigate: NavigateFunction = useNavigate();
@@ -64,14 +64,14 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     const [isConnected, setIsConnected] = useState<boolean>(socket?.connected);
     const [loading, setLoading] = useState<boolean>(false);
     const [events, setEvents] = useState<any[]>([]);
-    const [players, setPlayers] = useState<Player[]>([]);
-    const [messages, setMessages] = useState<Message[]>([]);
 
     // Current values
     const [currentRoom, setCurrentRoom] = useState<Room | undefined>();
     const [currentPlayer, setCurrentPlayer] = useState<Player | undefined>();
 
-    const [currentGame, dispatchGame] = useReducer(gameReducer, INITIAL_GAME);
+    const [currentGame, dispatchGame] = useReducer(Games.reducer, Games.INITIAL);
+    const [players, dispatchPlayers] = useReducer(Players.reducer, Players.INITIAL);
+    const [sketchVote, dispatchSketchVote] = useReducer(SketchAndVote.reducer, SketchAndVote.INITIAL);
     
     function joinRoom(name: string, roomId: string){
         setLoading(true);
@@ -126,7 +126,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
     function onPlayerJoined(player: Player){         
         if (player.name != currentPlayer?.name)   
-            setPlayers(prevPlayers =>  [...prevPlayers as Player[], player]); 
+            dispatchPlayers({type: Players.ActionKind.ADD_PLAYER, payload: player});
     }
 
     function roomNotFound(msg: string){
@@ -135,13 +135,12 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     function playerLeft(player: Player){
-        setPlayers(prevPlayers => prevPlayers.filter(pl => pl.name != player.name));
+        dispatchPlayers({type: Players.ActionKind.REMOVE_PLAYER, payload: player});
     }
 
     // Is called when the player joins, gives them a list of everyone in the room
     function onPlayerList(playerList: Player[]){
-        console.log();
-        setPlayers(playerList);
+        dispatchPlayers({type: Players.ActionKind.SET_PLAYERS, payload: playerList});
     }
 
     function onNameTaken(msg: string){
@@ -150,15 +149,13 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     function onExitRoom(msg: string){
-        if (currentPlayer)
-            navigate(currentPlayer.isHost ? "/" : "/joinRoom");
-        else
-            navigate('/');
+        if (currentPlayer) navigate(currentPlayer.isHost ? "/" : "/joinRoom");
+        else navigate('/');
     }
 
     function onGameStart(game: Game){
         console.log("Game starting", game);
-        dispatchGame({type: GameActionKind.SET_GAME, payload: game}); // Set the currentGame
+        dispatchGame({type: Games.ActionKind.SET_GAME, payload: game}); // Set the currentGame
         // Navigate the player based off the gamemode
         switch(game.name){
             case 'SketchAndVote': navigate("/standardGame");
@@ -168,7 +165,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
     // Adjust the time left on the current game
     function onTimeDecrease(newTime: number){
-        dispatchGame({type: GameActionKind.SET_TIMELEFT, payload: newTime}); // Update the time left on the game
+        dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime}); // Update the time left on the game
     }
 
     useEffect(() =>{
@@ -204,7 +201,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     return (
         <SocketContext.Provider value={{
             loading, setLoading,
-            players, setPlayers,
+            players, dispatchPlayers,
             events, setEvents, 
             isConnected, setIsConnected, 
             joinRoom, createRoom, leaveRoom,
