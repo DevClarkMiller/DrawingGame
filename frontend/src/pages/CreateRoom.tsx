@@ -1,17 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react'
 
 // Lib
-import randomName from '../../lib/randomName';
+import randomName from "@lib/randomName";
 
 // Components
-import LabeledInput from '../components/LabeledInput';
-import InputRow from '../components/InputRow';
-import EnterRoomButton from '../components/EnterRoomButton';
-
-// Icons
+import InputRow from '@components/InputRow';
+import EnterRoomButton from '@components/EnterRoomButton';
 
 // Context
-import { SocketContext } from '../context/SocketProvider';
+import { SocketContext } from '@context/SocketProvider';
 
 function CreateRoom() {
     // Context

@@ -1,20 +1,20 @@
 import { Route, Routes } from "react-router-dom";
 
 // Pages
-import JoinRoom from "./pages/JoinRoom";
-import CreateRoom from "./pages/CreateRoom";
-import ManageRoom from "./pages/ManageRoom";
-import ViewRoom from "./pages/ViewRoom";
+import JoinRoom from "@pages/JoinRoom";
+import CreateRoom from "@pages/CreateRoom";
+import ManageRoom from "@pages/ManageRoom";
+import ViewRoom from "@pages/ViewRoom";
 import SketchAndVoteLand from './games/sketchAndVote/SketchAndVoteLand';
 
 // Testing
 import StandardGame from "./games/StandardGame";
 
 // Components
-import Header from "./components/Header";
+import Header from "@components/Header";
 
 // Context
-import SocketProvider from "./context/SocketProvider";
+import SocketProvider from "@context/SocketProvider";
 
 function App() {
   return (

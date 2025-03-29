@@ -5,14 +5,14 @@ import { useNavigate, NavigateFunction } from 'react-router-dom';
 import { FaLink } from "react-icons/fa";
 
 // Types
-import { GameActionKind } from '../reducers/gameReducer';
+import { GameActionKind } from '@reducers/gameReducer';
 
 // Components
-import PlayersList from '../components/PlayersList';
-import RoomHeader from '../components/RoomHeader';
+import PlayersList from '@components/PlayersList';
+import RoomHeader from '@components/RoomHeader';
 
 // Context
-import { SocketContext } from '../context/SocketProvider';
+import { SocketContext } from '@context/SocketProvider';
 
 function ManageRoom() {
     const navigate: NavigateFunction = useNavigate();

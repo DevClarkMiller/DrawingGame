@@ -14,6 +14,16 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": "./",
+    "paths": {
+      "@lib/*": ["lib/*"],
+      "@components/*": ["src/components/*"],
+      "@pages/*": ["src/pages/*"],
+      "@context/*": ["src/context/*"],
+      "@reducers/*": ["src/reducers/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@def": ["src/def.ts"]
+    },
 
     /* Linting */
     "strict": true,

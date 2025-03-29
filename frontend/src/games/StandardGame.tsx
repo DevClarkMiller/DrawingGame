@@ -1,18 +1,17 @@
-import React, { useEffect, useMemo, useContext } from 'react'
-import { NavigateFunction, useNavigate } from 'react-router-dom';
+import { useMemo, useContext } from 'react'
 
 // Types
-import { Game, Player } from '../def';
+import { Game, Player } from '@def';
 
 // Components
-import Canvas from '../components/Canvas';
+import Canvas from '@components/Canvas';
 
 // Icons
 import { FaClock } from "react-icons/fa";
 import { FaPerson } from "react-icons/fa6";
 
 // Context
-import { SocketContext } from '../context/SocketProvider';
+import { SocketContext } from '@context/SocketProvider';
 
 // The bar that will be on top of the canvas
 function Timer({currentGame}: {currentGame: Game | undefined}){

@@ -1,18 +1,14 @@
 import React, { useContext, useMemo, useState, useEffect } from 'react'
-import { Link } from 'react-router-dom';
 
 // Lib
-import randomName from '../../lib/randomName';
+import randomName from '@lib/randomName';
 
 // Components
-import InputRow from '../components/InputRow';
-import EnterRoomButton from '../components/EnterRoomButton';
-
-// Icons
-import { FaPlay } from "react-icons/fa";
+import InputRow from '@components/InputRow';
+import EnterRoomButton from '@components/EnterRoomButton';
 
 // Context
-import { SocketContext } from '../context/SocketProvider';
+import { SocketContext } from '@context/SocketProvider';
 
 function JoinRoom() {
     const { joinRoom, setPlayers, leaveRoom, currentRoom } = useContext(SocketContext);

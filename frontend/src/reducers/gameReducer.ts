@@ -1,4 +1,4 @@
-import {Game} from '../def';
+import {Game} from '@def';
 
 export enum GameActionKind{
     SET_TIMELEFT = 1,

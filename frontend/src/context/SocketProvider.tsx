@@ -3,13 +3,13 @@ import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
 // Types
-import { Room, Player, Message, Game } from '../def';
+import { Room, Player, Message, Game } from '@def';
 
 // Reducers
-import { INITIAL_GAME, gameReducer, GameActionKind, GameAction } from '../reducers/gameReducer';
+import { INITIAL_GAME, gameReducer, GameActionKind, GameAction } from '@reducers/gameReducer';
 
 // Custom hooks
-import { useSocket } from '../hooks/useSocket';
+import { useSocket } from '@hooks/useSocket';
 
 export type SocketContextType = {
     // State

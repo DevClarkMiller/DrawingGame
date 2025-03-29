@@ -1,11 +1,11 @@
-import React, { useContext, useMemo } from 'react';
-import { Player } from '../def';
+import { useContext, useMemo } from 'react';
+import { Player } from '@def';
 
 // Icons
 import { MdPerson } from "react-icons/md";
 
 // Context
-import { SocketContext } from '../context/SocketProvider';
+import { SocketContext } from '@context/SocketProvider';
 
 function PlayerItem({ player }: {player: Player}){
     return(
