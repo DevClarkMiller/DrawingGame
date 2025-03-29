@@ -27,3 +27,12 @@ export type Game = {
     maxTime: number;
     running: boolean;
 }
+
+export class RequestError extends Error{
+    public status: number
+
+    constructor(status: number, msg: string){
+        super("Error: " + msg);
+        this.status = status;
+    }
+}

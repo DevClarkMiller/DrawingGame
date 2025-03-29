@@ -1,19 +1,25 @@
 import express, { Request, Response, Application } from 'express';
-import cors from 'cors';
-import loadEnv from '../lib/loadEnv';
 import http from 'http';
 import { Server, Socket, DefaultEventsMap } from 'socket.io';
 import { randomUUID } from 'crypto';
-import randomName from '../lib/randomName';
+
+// Lib imports
+import loadEnv from '@lib/loadEnv';
+import randomName from '@lib/randomName';
+import SentenceParser from '@lib/sentenceParser';
 
 // Types
-import { Player, Room, RoomDetails, Message, Game } from './def';
+import { Player, Room, RoomDetails, Message, Game } from '@def';
 
-loadEnv();
+loadEnv(); // Must call this before any env variables can be accessed
+
+
+/*!Environmental variables */
 const PORT: number = parseInt(process.env.PORT as string) || 5170;
 const CLIENT_URL: string = process.env.CLIENT_URL as string || "http://localhost:3000";
 const ROOM_ID_LEN: number = parseInt(process.env.ROOM_ID_LEN as string) || 12;
 
+const sentenceParser: SentenceParser = new SentenceParser();
 const app: Application = express();
 const server = http.createServer(app);
 const io = new Server(server, {
