@@ -21,7 +21,6 @@ import Header from "@components/Header";
 import SocketProvider from "@context/SocketProvider";
 
 // Styles
-import "@mantine/core/styles.css";
 
 export type AppContextType = {
   logger: Logger;

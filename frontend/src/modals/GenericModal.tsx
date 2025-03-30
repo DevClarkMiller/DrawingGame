@@ -14,6 +14,8 @@ interface GenericModalProps{
     hideExit?: boolean;
     useMaxWidth?: boolean;
 
+    CustomBody?: ({children}: {children: React.ReactNode}) => React.JSX.Element;
+
     // Callbacks
     onClose: any;
 
@@ -35,6 +37,7 @@ const GenericModal = ({
     hideFooter = false,
     hideExit = false,
     useMaxWidth = false,
+    CustomBody
 }: GenericModalProps) => {
     // Hides modal
     function onModalClose(){
@@ -52,8 +55,8 @@ const GenericModal = ({
     }
 
     return (
-        <div id="modal" className={`${show ? "block" : "hidden"} fixed z-40 inset-0 bg-transparent bg-opacity-60 overflow-y-auto size-full px-4 modal flex items-center justify-center`}>
-            <form onSubmit={submit} className={`relative flex flex-col shadow-xl rounded-md bg-primary mx-12 ${useMaxWidth ? "" : "max-w-md"} w-full h-1/2`}>
+        <div id="modal" className={`${show ? "flex" : "hidden"} fixed z-40 inset-0 bg-transparent bg-opacity-60 overflow-y-auto size-full px-4 modal flex items-center justify-center`}>
+            <form onSubmit={submit} className={`relative flex-grow flex flex-col shadow-xl rounded-md bg-primary mx-12 ${useMaxWidth ? "" : "max-w-mdTEST"} w-full h-2/3 lg:w-2/3`}>
                 {/* <!-- Modal header --> */}
                 <div className="size flex justify-between items-center bg-regular text-white text-xl rounded-t-md px-4 py-2">
                     <h3 className={`font-semibold w-full ${titleColor} ${centerTitle && "text-center"} overflow-hidden overflow-ellipsis whitespace-nowrap`}>{title}</h3>
@@ -61,9 +64,9 @@ const GenericModal = ({
                 </div>
 
                 {/* <!-- Modal body --> */}
-                <ul className={`${maxHeight} ${!hideScroll ? "overflow-y-scroll" : "overflow-clip" } p-4 gap-3 col-flex-center`}>
+                {!CustomBody ? <ul className={`${maxHeight} ${!hideScroll ? "overflow-y-scroll" : "overflow-clip" } p-4 gap-3 flex flex-col items-center`}>
                     {children}
-                </ul>
+                </ul>: <CustomBody>{children}</CustomBody>}
 
                 {/* <!-- Modal footer --> */}
                 {!hideFooter && <div className={`px-4 py-2 flex justify-center items-center space-x-4 ${children ? "border-t border-t-gray-500" : ""}`}>

@@ -8,16 +8,18 @@ namespace SketchAndVote{
     export interface State{
         playersReady: number; // The number of players ready to play
         imageOptions: string[];
+        selectedImage: string;
     }
 
     export enum ActionKind{
         PLAYER_READY = 1,
         PLAYER_UNREADY = 2,
         SET_IMAGE_OPTIONS = 3,
-        RESET_PLAYERS_READY = 4
+        SET_SELECTED_IMAGE = 4,
+        RESET_PLAYERS_READY = 5
     }
 
-    export const INITIAL: State = { playersReady: 0, imageOptions: ["https://upload.wikimedia.org/wikipedia/commons/7/7a/SpongeBob_SquarePants_character.png"] };
+    export const INITIAL: State = { playersReady: 0, imageOptions: [], selectedImage: "" };
 
     export interface Action{
         type: ActionKind;
@@ -31,7 +33,9 @@ namespace SketchAndVote{
             case ActionKind.PLAYER_UNREADY:
                 return {...state, playersReady: Math.max(0, state.playersReady - 1)}
             case ActionKind.SET_IMAGE_OPTIONS:
-                return {...state, imageOptions: payload };
+                return {...state, imageOptions: payload};
+            case ActionKind.SET_SELECTED_IMAGE:
+                return {...state, selectedImage: payload};
             case ActionKind.RESET_PLAYERS_READY:
                 return {...state, playersReady: 0}
             default: return state;

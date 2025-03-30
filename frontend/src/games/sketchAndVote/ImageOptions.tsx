@@ -2,25 +2,40 @@ import { useContext } from "react";
 
 import ListModal from "@src/modals/ListModal";
 import GenericModal from "@src/modals/GenericModal";
-import { useState } from "react";
+
+// Namespaces
+import SketchAndVote from "@reducers/sketchVoteReducer";
+
 
 // Context
 import { SocketContext } from "@context/SocketProvider";
 
 
-function ImageOption({src}: {src: string}){
+function ImageOption({src, onImageClick}: {src: string, onImageClick: (src: string) => void}){
     return(
-        <li>
-            <button type="button" className="size-full !bg-transparent">
-                <img src={src}/>
+        <li className="size-full overflow-hidden max-w-full h-auto min-h-60">
+            <button onClick={() => onImageClick(src)} type="button" className="size-full !bg-transparent overflow-hidden flex justify-center">
+                <img className="max-w-full h-full" src={src}/>
             </button>
         </li>
     );
 }
 
-function ImageOptions() {
-    const [show, setShow] = useState<boolean>(true);
-    const { sketchVote } = useContext(SocketContext);
+function CustomBody({children}: {children: React.ReactNode}): React.JSX.Element{
+    return (
+        <ul className="overflow-y-scroll size-full grid grid-cols-2">{children}</ul>
+    );
+}
+
+function ImageOptions(
+    {show, setShow}: {show: boolean, setShow: React.Dispatch<React.SetStateAction<boolean>>}
+) {
+    const { sketchVote, dispatchSketchVote } = useContext(SocketContext);
+
+    function onImageClick(src: string){
+        console.log(src);
+        dispatchSketchVote({type: SketchAndVote.ActionKind.SET_SELECTED_IMAGE, payload: src});
+    }
 
     return (
         <GenericModal 
@@ -33,8 +48,8 @@ function ImageOptions() {
             hideExit
             centerTitle
             useMaxWidth
-            >
-            {sketchVote?.imageOptions?.map((imgOpt) => <ImageOption key={imgOpt} src={imgOpt}/>)}
+            CustomBody={CustomBody}>
+            {sketchVote?.imageOptions?.map((imgOpt) => <ImageOption key={imgOpt} onImageClick={onImageClick} src={imgOpt}/>)}
         </GenericModal>
     );
 }

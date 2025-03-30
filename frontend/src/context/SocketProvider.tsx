@@ -31,6 +31,7 @@ export type SocketContextType = {
     setCurrentRoom: Dispatch<SetStateAction<Room | undefined>>;
     dispatchGame: React.ActionDispatch<[action: Games.Action]>;
     dispatchPlayers: React.ActionDispatch<[action: Players.Action]>;
+    dispatchSketchVote: React.ActionDispatch<[action: SketchAndVote.Action]>;
     setLoading: Dispatch<SetStateAction<boolean>>;
 
     // Room management
@@ -191,7 +192,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             events, setEvents, 
             isConnected, setIsConnected, 
             joinRoom, createRoom, leaveRoom,
-            startGame, parseSentence, sketchVote,
+            startGame, parseSentence, sketchVote, dispatchSketchVote,
             currentRoom, setCurrentRoom,
             currentGame, dispatchGame
         }}>
