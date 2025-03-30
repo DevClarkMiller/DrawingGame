@@ -22,7 +22,8 @@
       "@context/*": ["src/context/*"],
       "@reducers/*": ["src/reducers/*"],
       "@hooks/*": ["src/hooks/*"],
-      "@def": ["src/def.ts"]
+      "@def": ["src/def.ts"],
+      "@src/*": ["src/*"]
     },
 
     /* Linting */

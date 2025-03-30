@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client';
 import { Logger } from '@lib/logger';
 
 // Types
-import { Room, Player, Message, Game } from '@def';
+import { Room, Player, Game } from '@def';
 
 // Reducers
 import Games from '@reducers/gameReducer';
@@ -23,6 +23,7 @@ export type SocketContextType = {
     currentGame: Game | undefined;
     loading: boolean;
     players: Player[];
+    sketchVote: SketchAndVote.State;
 
     // State setters
     setIsConnected: Dispatch<SetStateAction<boolean>>;
@@ -39,6 +40,7 @@ export type SocketContextType = {
 
     // Game management
     startGame: () => void;
+    parseSentence: (sentence: string) => void;
 }
 
 export const SocketContext = createContext<SocketContextType>({} as SocketContextType);
@@ -84,6 +86,12 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
         if (currentGame)
             socket.emit('startGame', { game: currentGame, roomId: currentRoom?.id });
     }
+
+    function parseSentence(sentence: string){
+        socket.emit('parseSentence', sentence);
+    }
+
+    // Event callbacks
 
     function onCreatedRoom(room: Room){
         if (currentPlayer) // Player will be given a name and has the isHost boolean set before this is called
@@ -133,6 +141,11 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
         }
     }
 
+    function onSentenceParsed(urls: string[]){
+        logger.log(urls);
+        dispatchSketchVote({type: SketchAndVote.ActionKind.SET_IMAGE_OPTIONS, payload: urls});
+    }
+
     useEffect(() =>{
         // Note that some of the callbacks are defined here, this is if they're simple, else they get their own dedicated function
         const socketEvents: [name: string, callBack: (...args: any[]) => void][] = [
@@ -152,6 +165,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             
             // Game Events
             ['gameStarted', onGameStart],
+            ['sentenceParsed', onSentenceParsed],
 
             // Update the time left on the game
             ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})] 
@@ -177,7 +191,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             events, setEvents, 
             isConnected, setIsConnected, 
             joinRoom, createRoom, leaveRoom,
-            startGame,
+            startGame, parseSentence, sketchVote,
             currentRoom, setCurrentRoom,
             currentGame, dispatchGame
         }}>

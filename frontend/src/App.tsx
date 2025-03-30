@@ -20,6 +20,9 @@ import Header from "@components/Header";
 // Context
 import SocketProvider from "@context/SocketProvider";
 
+// Styles
+import "@mantine/core/styles.css";
+
 export type AppContextType = {
   logger: Logger;
 }
@@ -37,21 +40,21 @@ function App() {
 
   return (
     <div className="size-full min-h-screen text-main flex flex-col items-center justify-center flex-grow">
-      <SocketProvider logger={logger}>
-        <AppContext.Provider value={{logger: logger}}>
-          <Header />
-          <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
-            <Routes>
-              <Route path="/joinRoom" element={<JoinRoom />} />
-              <Route path="/" element={<CreateRoom />} />
-              <Route path="/manageRoom" element={<ManageRoom />} />
-              <Route path="/viewRoom" element={<ViewRoom />}/>
-              <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
-              <Route path="/standardGame" element={<StandardGame />}/>
-            </Routes>
-          </main>
-        </AppContext.Provider>
-      </SocketProvider>
+        <SocketProvider logger={logger}>
+          <AppContext.Provider value={{logger: logger}}>
+            <Header />
+            <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
+              <Routes>
+                <Route path="/joinRoom" element={<JoinRoom />} />
+                <Route path="/" element={<CreateRoom />} />
+                <Route path="/manageRoom" element={<ManageRoom />} />
+                <Route path="/viewRoom" element={<ViewRoom />}/>
+                <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
+                <Route path="/standardGame" element={<StandardGame />}/>
+              </Routes>
+            </main>
+          </AppContext.Provider>
+        </SocketProvider>
     </div>
   );
 }

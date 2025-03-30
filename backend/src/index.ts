@@ -162,6 +162,16 @@ function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
         });
     }
 
+    socket.on('parseSentence', async (sentence: string) =>{
+        let sentences: string[] = await sentenceParser.parse(sentence);
+        // Return the top 5 if there are over 5
+        if (sentences.length > 5){
+            sentences = sentences.slice(0, 5);
+        }
+
+        socket.emit('sentenceParsed', sentences);
+    });
+
     socket.on('endGame', (roomId: string) =>{ endGame(roomId); });
 
     // Starts a specific game depending on the one provided

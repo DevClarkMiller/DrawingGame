@@ -22,7 +22,8 @@ export default defineConfig(({ mode }) => {
         '@context': path.resolve(__dirname, "./src/context"),
         '@reducers': path.resolve(__dirname, "./src/reducers"),
         '@hooks': path.resolve(__dirname, "./src/hooks"),
-        "@def": path.resolve(__dirname, "./src/def.ts")
+        "@def": path.resolve(__dirname, "./src/def.ts"),
+        "@src": path.resolve(__dirname, "./src")
       }
     },
     define: {
