@@ -9,6 +9,7 @@ namespace SketchAndVote{
         playersReady: number; // The number of players ready to play
         imageOptions: string[];
         selectedImage: string;
+        loading: boolean;
     }
 
     export enum ActionKind{
@@ -16,10 +17,11 @@ namespace SketchAndVote{
         PLAYER_UNREADY = 2,
         SET_IMAGE_OPTIONS = 3,
         SET_SELECTED_IMAGE = 4,
-        RESET_PLAYERS_READY = 5
+        SET_LOADING = 5,
+        RESET_PLAYERS_READY = 6
     }
 
-    export const INITIAL: State = { playersReady: 0, imageOptions: [], selectedImage: "" };
+    export const INITIAL: State = { playersReady: 0, imageOptions: [], selectedImage: "", loading: false };
 
     export interface Action{
         type: ActionKind;
@@ -36,6 +38,8 @@ namespace SketchAndVote{
                 return {...state, imageOptions: payload};
             case ActionKind.SET_SELECTED_IMAGE:
                 return {...state, selectedImage: payload};
+            case ActionKind.SET_LOADING:
+                return {...state, loading: payload};
             case ActionKind.RESET_PLAYERS_READY:
                 return {...state, playersReady: 0}
             default: return state;

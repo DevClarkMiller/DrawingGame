@@ -1,11 +1,12 @@
 import { useContext } from "react";
 
-import ListModal from "@src/modals/ListModal";
 import GenericModal from "@src/modals/GenericModal";
 
 // Namespaces
 import SketchAndVote from "@reducers/sketchVoteReducer";
 
+// Components
+import { ClipLoader } from "react-spinners";
 
 // Context
 import { SocketContext } from "@context/SocketProvider";
@@ -22,8 +23,13 @@ function ImageOption({src, onImageClick}: {src: string, onImageClick: (src: stri
 }
 
 function CustomBody({children}: {children: React.ReactNode}): React.JSX.Element{
+    const { sketchVote } = useContext(SocketContext);
+
     return (
-        <ul className="overflow-y-scroll size-full grid grid-cols-2">{children}</ul>
+        <>{sketchVote?.loading ? 
+            <div className="size-full flex justify-center items-center"><ClipLoader color="#DCA06D" size={150} /> </div>:
+            <ul className="overflow-y-scroll size-full grid grid-cols-2">{children}</ul>
+        }</>
     );
 }
 

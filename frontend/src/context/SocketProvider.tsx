@@ -89,6 +89,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
     }
 
     function parseSentence(sentence: string){
+        dispatchSketchVote({type: SketchAndVote.ActionKind.SET_LOADING, payload: true});
         socket.emit('parseSentence', sentence);
     }
 
@@ -145,6 +146,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
     function onSentenceParsed(urls: string[]){
         logger.log(urls);
         dispatchSketchVote({type: SketchAndVote.ActionKind.SET_IMAGE_OPTIONS, payload: urls});
+        dispatchSketchVote({type: SketchAndVote.ActionKind.SET_LOADING, payload: false});
     }
 
     useEffect(() =>{

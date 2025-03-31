@@ -164,10 +164,10 @@ function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEv
 
     socket.on('parseSentence', async (sentence: string) =>{
         let sentences: string[] = await sentenceParser.parse(sentence);
-        // Return the top 6 if there are over 6
-        // if (sentences.length > 6){
-        //     sentences = sentences.slice(0, 6);
-        // }
+        // Return the top 10 if there are over 10
+        if (sentences.length > 10){
+            sentences = sentences.slice(0, 10);
+        }
 
         socket.emit('sentenceParsed', sentences);
     });
