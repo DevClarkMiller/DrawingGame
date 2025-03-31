@@ -41,7 +41,7 @@ function SketchAndVoteLand() {
                     <input value={sentence} onChange={e => setSentence(e.target.value)} placeholder='Your sentence here' className='text-input w-2/3 text-center text-3xl p-3'/>
                     
                     {sketchVote?.selectedImage &&
-                        <div className='w-2/3 lg:w-1/3 h-auto mt-5'>
+                        <div className='w-2/3 lg:w-1/3 h-auto mt-5 flex justify-center items-center'>
                             <img src={sketchVote?.selectedImage}/>
                         </div>
                     }

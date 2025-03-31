@@ -55,8 +55,8 @@ const GenericModal = ({
     }
 
     return (
-        <div id="modal" className={`${show ? "flex" : "hidden"} fixed z-40 inset-0 bg-transparent bg-opacity-60 overflow-y-auto size-full px-4 modal flex items-center justify-center`}>
-            <form onSubmit={submit} className={`relative flex-grow flex flex-col shadow-xl rounded-md bg-primary mx-12 ${useMaxWidth ? "" : "max-w-mdTEST"} w-full h-2/3 lg:w-2/3`}>
+        <div id="modal" className={`${show ? "flex" : "hidden"} fixed z-40 inset-0 bg-transparent bg-opacity-60 overflow-y-auto px-4 modal flex items-center justify-center`}>
+            <form onSubmit={submit} className={`relative flex flex-col shadow-xl rounded-md bg-primary mx-12 ${useMaxWidth ? "" : "max-w-mdTEST"} w-full h-2/3 lg:w-2/5`}>
                 {/* <!-- Modal header --> */}
                 <div className="size flex justify-between items-center bg-regular text-white text-xl rounded-t-md px-4 py-2">
                     <h3 className={`font-semibold w-full ${titleColor} ${centerTitle && "text-center"} overflow-hidden overflow-ellipsis whitespace-nowrap`}>{title}</h3>
