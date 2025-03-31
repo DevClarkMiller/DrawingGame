@@ -60,6 +60,13 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
     const [currentGame, dispatchGame] = useReducer(Games.reducer, Games.INITIAL);
     const [players, dispatchPlayers] = useReducer(Players.reducer, Players.INITIAL);
     const [sketchVote, dispatchSketchVote] = useReducer(SketchAndVote.reducer, SketchAndVote.INITIAL);
+
+    useEffect(() => {
+        if (sketchVote?.selectedImage){
+            logger.log(sketchVote.selectedImage);
+            // dispatchSketchVote({type: SketchAndVote.ActionKind.PLAYER_READY, });
+        }
+    }, [sketchVote?.selectedImage]);
     
     function joinRoom(name: string, roomId: string){
         setLoading(true);

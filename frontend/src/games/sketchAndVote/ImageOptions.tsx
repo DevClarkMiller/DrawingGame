@@ -39,13 +39,12 @@ function ImageOptions(
     const { sketchVote, dispatchSketchVote } = useContext(SocketContext);
 
     function onImageClick(src: string){
-        console.log(src);
         dispatchSketchVote({type: SketchAndVote.ActionKind.SET_SELECTED_IMAGE, payload: src});
     }
 
     return (
         <GenericModal 
-            title="Image Options"
+            title="Image Choices 🤓"
             onClose={null}
             onSubmit={null}
             show={show} 

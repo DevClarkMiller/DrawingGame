@@ -28,7 +28,6 @@ function SketchAndVoteLand() {
 
     function onSubmitSentence(e: React.SyntheticEvent<HTMLFormElement>){
         e.preventDefault();
-        logger.log(sentence);
         parseSentence(sentence);
         setShow(true);
     }

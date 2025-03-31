@@ -112,7 +112,8 @@
     "baseUrl": "./",
     "paths": {
       "@lib/*": ["lib/*"],
-      "@def": ["src/def.ts"]
+      "@src/*": ["src/*"],
+      "@def": ["src/def.ts"],
     },
   }
 }
