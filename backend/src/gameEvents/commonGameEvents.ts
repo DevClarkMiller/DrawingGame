@@ -1,5 +1,6 @@
 import { Socket, DefaultEventsMap } from 'socket.io';
-import { Game, Gamemode } from "@def";
+import { Game } from "@def";
+import Gamemode from '@src/gamemodes/GameMode';
 import { gameFactory } from '@lib/gameFactory';
 import { io, games, sentenceParser } from '@src/index';
 
