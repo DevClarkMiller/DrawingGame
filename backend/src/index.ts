@@ -7,7 +7,7 @@ import loadEnv from '@lib/loadEnv';
 import SentenceParser from '@lib/sentenceParser';
 
 // Types
-import { Player,  RoomDetails,  Game } from '@def';
+import { Player,  RoomDetails,  Game, GameSession } from '@def';
 
 loadEnv(); // Must call this before any env variables can be accessed
 
@@ -24,7 +24,7 @@ export const io = new Server(server, {cors: { origin: "*" }});
 // Change to use redis in production
 export let rooms: Map<string, RoomDetails> = new Map<string, RoomDetails>();
 export let players: Map<string, Player> = new Map<string, Player>(); // Socket ids mapped to their players
-export let games: Map<string, Game> = new Map<string, Game>(); // Key is the roomId of the game
+export let games: Map<string, GameSession> = new Map<string, GameSession>(); // Key is the roomId of the game
 
 // Import events
 import { manageRoom } from '@src/roomEvents';

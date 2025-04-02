@@ -1,39 +1,53 @@
 
 // Types
-import { Game } from "@src/def";
+import { Game, Player, GamingPlayer, GameSession } from "@src/def";
 import  { Server, DefaultEventsMap } from 'socket.io';
 
 export default abstract class Gamemode{
-    protected game: Game; 
-    protected games: Map<string, Game>
-    protected roomId: string;
-    protected io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
+    protected gameSession: GameSession;
+    protected games: Map<string, GameSession>
+    private roomId: string;
+    private io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
+    private eventStartName: string = "gameStarted";
+    private eventEndName: string = "gameEnded";
 
-    public constructor(game: Game, games: Map<string, Game>, roomId: string, io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>){
-        this.game = game;
+    public constructor(
+        gameSession: GameSession,
+        games: Map<string, GameSession>, 
+        roomId: string, 
+        io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
+    ){
+        this.gameSession = gameSession;
         this.games = games;
         this.roomId = roomId;
         this.io = io;
     }
 
-    protected abstract gameLoop(): Promise<void>;
-    
-    async start(): Promise<void>{
-        this.games.set(this.roomId, this.game);
-        console.log(this.games.get(this.roomId));
-
-        // Start game loop, once the time runs out the game is over
-        const currentGame: Game | undefined = this.games.get(this.roomId);
-        if (!currentGame) return;
-
-        currentGame.running = true;
-
-        // First emit that the game has started
-        this.io.to(this.roomId).emit('gameStarted', this.game);
-        await this.gameLoop();
-        this.io.to(this.roomId).emit("gameEnded", "Game is over"); // Placeholder until I determine what data needs to be sent over
-        this.end();
+    protected event(name: string, data: any){
+        this.io.to(this.roomId).emit(name, data);
     }
 
-    protected abstract end(): void;
+    protected abstract gameLoop(): Promise<void>;
+
+    public setup(): void{
+
+    }
+    
+    async start(): Promise<void>{
+        this.games.set(this.roomId, this.gameSession);
+
+        // Start game loop, once the time runs out the game is over
+
+        this.gameSession.game.running = true;
+        console.log(this.games.get(this.roomId));
+
+        // Emit that the game has started
+        this.event(this.eventStartName, this.gameSession.game)
+        await this.gameLoop();
+    }
+
+    protected end(): void{
+        this.event(this.eventEndName, "Game is over"); // Placeholder until I determine what data needs to be sent over
+        this.gameSession.game.running = false;
+    };
 }

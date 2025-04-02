@@ -1,18 +1,19 @@
 import { Socket, DefaultEventsMap } from 'socket.io';
-import { Game } from "@def";
+import { Game, GameSession, RoomDetails, GamingPlayer, Player } from "@def";
 import Gamemode from '@src/gamemodes/GameMode';
 import { gameFactory } from '@lib/gameFactory';
-import { io, games, sentenceParser } from '@src/index';
+import { io, games, sentenceParser, rooms, players } from '@src/index';
 
 export function endGame(roomId: string){
-    const game: Game | undefined = games.get(roomId);
+    const gameSession: GameSession | undefined = games.get(roomId);
 
-    if (!game) return; // Means no game is found
-    game.running = false; // Stop the game from running
+    if (!gameSession) return; // Means no game is found
+    gameSession.game.running = false; // Stop the game from running
     io.to(roomId).emit("gameEnded", "Game is over"); // Placeholder until I determine what data needs to be sent over
 }
 
 export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>){
+    /*! SKETCH AND VOTE EVENTS */
     socket.on('parseSentence', async (sentence: string) =>{
         let sentences: string[] = await sentenceParser.parse(sentence);
         // Return the top 10 if there are over 10
@@ -23,11 +24,38 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
         socket.emit('sentenceParsed', sentences);
     });
 
+    socket.on('playerPickImage', async ({image, roomId}: {image: string, roomId: string}) =>{
+        const player: Player | undefined = players.get(socket.id);
+        if (!player) return;
+
+        // For the game session, set the players image
+        const gameSession: GameSession = games.get(roomId) as GameSession;
+        const gamingPlayer: GamingPlayer = gameSession.players.get(player.name as string) as GamingPlayer;
+
+        // Finally update the iamge after all the null checks
+        gamingPlayer.data = image;
+    });
+
     socket.on('endGame', (roomId: string) =>{ endGame(roomId); });
+
+    socket.on('initGame', ({game, roomId}: {game: Game, roomId: string}) =>{
+        // Create a new game session
+        let gameSession: GameSession = {game: game, players: new Map<string, GamingPlayer>};
+
+        // Put all the players from the room into the game session
+        const roomDetails: RoomDetails | undefined = rooms.get(roomId);
+        if (!roomDetails) return;
+
+        roomDetails.players.forEach(player =>{
+            gameSession.players.set(player.name as string, {player: player, data: null});
+        });
+
+        const gamemode: Gamemode = gameFactory(gameSession, games, roomId, io);
+        gamemode.setup();
+    });
 
     // Starts a specific game depending on the one provided
     socket.on('startGame', async ({game, roomId}: {game: Game, roomId: string}) =>{
-        const gamemode = gameFactory(game, games, roomId, io);
-        gamemode.start();
+        gamemode.setup();
     });
 }
