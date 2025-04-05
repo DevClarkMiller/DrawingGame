@@ -30,7 +30,7 @@ export class SketchAndVote extends Gamemode{
 
     /**
      * Brief: Sets up the round, matching players to an image they haven't seen yet
-     */
+    */
     private initRound(): void{
         this.event("newRound", this.numRounds);
     }

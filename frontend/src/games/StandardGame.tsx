@@ -10,18 +10,17 @@ import Canvas from '@components/Canvas';
 import { FaClock } from "react-icons/fa";
 import { FaPerson } from "react-icons/fa6";
 
+// Custom hooks
+import useColorRatio from '@hooks/useColorRatio';
+
 // Context
 import { SocketContext } from '@context/SocketProvider';
 
 // The bar that will be on top of the canvas
 function Timer({currentGame}: {currentGame: Game | undefined}){
     const timeLeftColor = useMemo(() =>{
-        if (!currentGame) return 'text-green-600'; // If no game is found, just assume everything is peachy
-
-        if (currentGame.timeLeft >= currentGame.maxTime * 0.8) return 'text-green-600';
-        else if (currentGame.timeLeft >= currentGame.maxTime * 0.5) return 'text-yellow-600';
-        else if (currentGame.timeLeft >= currentGame.maxTime * 0.2) return 'text-orange-600';
-        return 'text-red-600'; // Means that like no time is left at all
+        if (!currentGame) return 'text-green-600';
+        return useColorRatio(currentGame.timeLeft, currentGame.maxTime);
     }, [currentGame]);
 
     return(

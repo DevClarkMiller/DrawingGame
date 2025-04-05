@@ -25,7 +25,7 @@ namespace SketchAndVote{
 
     export interface Action{
         type: ActionKind;
-        payload: any;
+        payload?: any;
     }
 
     export function reducer(state: State, { type, payload }: Action){

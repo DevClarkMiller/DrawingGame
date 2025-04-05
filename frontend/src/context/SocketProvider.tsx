@@ -65,7 +65,6 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
         if (sketchVote?.selectedImage){
             logger.log(sketchVote.selectedImage);
             socket.emit('playerPickImage', {image: sketchVote.selectedImage, roomId: currentRoom?.id});
-            // dispatchSketchVote({type: SketchAndVote.ActionKind.PLAYER_READY, });
         }
     }, [sketchVote?.selectedImage]);
     
@@ -178,6 +177,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             // Game Events
             ['gameStarted', onGameStart],
             ['sentenceParsed', onSentenceParsed],
+            ['playerReady', () => dispatchSketchVote({type: SketchAndVote.ActionKind.PLAYER_READY})],
 
             // Update the time left on the game
             ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})] 
