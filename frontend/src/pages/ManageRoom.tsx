@@ -16,7 +16,7 @@ import { SocketContext } from '@context/SocketProvider';
 
 function ManageRoom() {
     const navigate: NavigateFunction = useNavigate();
-    const { players, loading, currentRoom, dispatchGame, startGame } = useContext(SocketContext);
+    const { players, loading, currentRoom, dispatchGame, initGame } = useContext(SocketContext);
     const [inviteColor, setInviteColor] = useState<string>("text-main");
 
     const canStart = useMemo(() => players?.length > 1, [players]);
@@ -47,7 +47,7 @@ function ManageRoom() {
                 <RoomHeader to='/'>Manage Room</RoomHeader>
                 <PlayersList className='size-full lg:w-1/2 flex-grow'/>
                 <div className='flex gap-3'>
-                    <button className={`nice-trans text-white ${canStart ? "!bg-green-500" : "!bg-red-500"}`} onClick={startGame} disabled={!canStart}>Start</button>
+                    <button className={`nice-trans text-white ${canStart ? "!bg-green-500" : "!bg-red-500"}`} onClick={initGame} disabled={!canStart}>Start</button>
                     <button onClick={onCopyInvite} className='flex items-center gap-3 nice-trans'><span>Copy Invite</span><FaLink className={`text-xl ${inviteColor}`}/></button>
                 </div>
             </div>

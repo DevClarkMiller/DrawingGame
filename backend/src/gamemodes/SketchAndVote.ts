@@ -10,24 +10,18 @@ export class SketchAndVote extends Gamemode{
 
     public constructor(
         gameSession: GameSession,
-        games: Map<string, GameSession>, 
         roomId: string, 
         io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
     ){
-        super(gameSession, games, roomId, io);
+        super(gameSession, roomId, io);
+    }
 
-        const players: Map<string, GamingPlayer> = gameSession.players;
-
-        // Get a list of all the images from each player
-        let images: string[] = [];
-        players.forEach(player => images.push(player.data as string));
-        // Now for each player, set their possible images
-        players.forEach(player =>{
-            const possibleImages: string[] = images.filter(img => img != player.data as string);
-            this.playerImages.set(player.player.name as string, possibleImages);
-        });
-
-        console.log(this.playerImages);
+    public override init(): void{
+        // Start a 60 second timer, once it executes the start function is called
+        this.event('nav', 'sketchAndVote');
+        setTimeout(() =>{
+            this.start();
+        }, 60000)
     }
 
     public setNumRounds(numRounds: number): void{
@@ -41,7 +35,25 @@ export class SketchAndVote extends Gamemode{
         this.event("newRound", this.numRounds);
     }
 
-    async gameLoop(): Promise<void>{
+    public override async start(): Promise<void>{
+        // Set all the player images
+        const players: Map<string, GamingPlayer> = this.gameSession.players;
+
+        // Get a list of all the images from each player
+        let images: string[] = [];
+        players.forEach(player => images.push(player.data as string));
+        // Now for each player, set their possible images
+        players.forEach(player =>{
+            const possibleImages: string[] = images.filter(img => img != player.data as string);
+            this.playerImages.set(player.player.name as string, possibleImages);
+        });
+
+        console.log(this.playerImages);
+
+        super.start();
+    }
+
+    public async gameLoop(): Promise<void>{
         const loop = new Promise<void>((resolve) =>{
             // Setup for the new round here
             this.initRound();
@@ -69,7 +81,6 @@ export class SketchAndVote extends Gamemode{
             this.gameLoop();
         }else{ // All rounds have concluded
             console.log("SKETCH AND VOTE OVER!");
-            this.end();
         }
     }
 }

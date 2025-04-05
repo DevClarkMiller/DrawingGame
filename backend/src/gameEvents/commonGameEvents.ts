@@ -2,7 +2,7 @@ import { Socket, DefaultEventsMap } from 'socket.io';
 import { Game, GameSession, RoomDetails, GamingPlayer, Player } from "@def";
 import Gamemode from '@src/gamemodes/GameMode';
 import { gameFactory } from '@lib/gameFactory';
-import { io, games, sentenceParser, rooms, players } from '@src/index';
+import { io, games, sentenceParser, rooms, players, activeGamemodes } from '@src/index';
 
 export function endGame(roomId: string){
     const gameSession: GameSession | undefined = games.get(roomId);
@@ -30,15 +30,17 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 
         // For the game session, set the players image
         const gameSession: GameSession = games.get(roomId) as GameSession;
+
         const gamingPlayer: GamingPlayer = gameSession.players.get(player.name as string) as GamingPlayer;
 
-        // Finally update the iamge after all the null checks
+        // Finally update the image after all the null checks
         gamingPlayer.data = image;
     });
 
     socket.on('endGame', (roomId: string) =>{ endGame(roomId); });
 
     socket.on('initGame', ({game, roomId}: {game: Game, roomId: string}) =>{
+        console.log("INIT GAME");
         // Create a new game session
         let gameSession: GameSession = {game: game, players: new Map<string, GamingPlayer>};
 
@@ -51,11 +53,13 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
         });
 
         const gamemode: Gamemode = gameFactory(gameSession, games, roomId, io);
-        gamemode.setup();
+        gamemode.init();
+        activeGamemodes.set(roomId, gamemode);
     });
 
-    // Starts a specific game depending on the one provided
-    socket.on('startGame', async ({game, roomId}: {game: Game, roomId: string}) =>{
-        gamemode.setup();
+
+    socket.on('startGame', async ({roomId}: {game: Game, roomId: string}) =>{
+        const gamemode: Gamemode = activeGamemodes.get(roomId) as Gamemode;
+        gamemode.start();
     });
 }

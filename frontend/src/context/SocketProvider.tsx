@@ -40,7 +40,7 @@ export type SocketContextType = {
     leaveRoom: () => void;
 
     // Game management
-    startGame: () => void;
+    initGame: () => void;
     parseSentence: (sentence: string) => void;
 }
 
@@ -64,6 +64,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
     useEffect(() => {
         if (sketchVote?.selectedImage){
             logger.log(sketchVote.selectedImage);
+            socket.emit('playerPickImage', {image: sketchVote.selectedImage, roomId: currentRoom?.id});
             // dispatchSketchVote({type: SketchAndVote.ActionKind.PLAYER_READY, });
         }
     }, [sketchVote?.selectedImage]);
@@ -90,9 +91,9 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
         socket.connect(); // Reconnect
     }
 
-    function startGame(){
+    function initGame(){
         if (currentGame)
-            socket.emit('startGame', { game: currentGame, roomId: currentRoom?.id });
+            socket.emit('initGame', { game: currentGame, roomId: currentRoom?.id });
     }
 
     function parseSentence(sentence: string){
@@ -172,6 +173,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             ['nameTaken', onNameTaken],
             ['exitRoom', onExitRoom],
             ['playerList', (playerList: Player[]) => dispatchPlayers({type: Players.ActionKind.SET_PLAYERS, payload: playerList})],
+            ['nav', (to: string) => navigate(`/${to}`)],
             
             // Game Events
             ['gameStarted', onGameStart],
@@ -201,7 +203,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             events, setEvents, 
             isConnected, setIsConnected, 
             joinRoom, createRoom, leaveRoom,
-            startGame, parseSentence, sketchVote, dispatchSketchVote,
+            initGame, parseSentence, sketchVote, dispatchSketchVote,
             currentRoom, setCurrentRoom,
             currentGame, dispatchGame
         }}>

@@ -25,10 +25,12 @@ export const io = new Server(server, {cors: { origin: "*" }});
 export let rooms: Map<string, RoomDetails> = new Map<string, RoomDetails>();
 export let players: Map<string, Player> = new Map<string, Player>(); // Socket ids mapped to their players
 export let games: Map<string, GameSession> = new Map<string, GameSession>(); // Key is the roomId of the game
+export let activeGamemodes: Map<string, Gamemode> = new Map<string, Gamemode>(); // Key is roomid, 
 
 // Import events
 import { manageRoom } from '@src/roomEvents';
 import { manageGame } from '@src/gameEvents/commonGameEvents';
+import Gamemode from './gamemodes/GameMode';
 
 io.on('connection', (socket) =>{
     manageRoom(socket);
