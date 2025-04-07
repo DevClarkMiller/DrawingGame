@@ -6,7 +6,7 @@ import  { Server, DefaultEventsMap } from 'socket.io';
 import { countdown } from "@src/roomEvents";
 
 export class SketchAndVote extends Gamemode{
-    private numRounds: number = 5;
+    private numRounds: number = 0;
     private playerImages: Map<string, string[]> = new Map<string, string[]>(); // Maps a players name to a stack of images that they will be able to draw
 
     public constructor(
@@ -42,7 +42,19 @@ export class SketchAndVote extends Gamemode{
     private initRound(): void{
         this.event("newRound", this.numRounds);
 
-        // Emit the player list
+        // Emit to each player their next image
+        const gamingPlayers: Map<string, GamingPlayer> = this.gameSession.players;
+
+        // Pop an image off each players image list
+        gamingPlayers.forEach(gamingPlayer =>{
+            let images: string[] = this.playerImages.get(gamingPlayer.player.name as string) as string[];
+            
+            const image: string | undefined= images.pop();
+
+            if (image){
+                this.eventTo(gamingPlayer.player.socketId, "nextImage", image); // Broadcast to the specific player
+            }
+        });
     }
 
     public override async start(): Promise<void>{
@@ -60,10 +72,14 @@ export class SketchAndVote extends Gamemode{
 
         console.log(this.playerImages);
 
+        // Set num rounds equal to n(players) - 1
+        this.numRounds = players.size - 1;
+        console.log(`NUM ROUNDS: ${this.numRounds}`);
         super.start();
     }
 
     public async gameLoop(): Promise<void>{
+        this.initRound();
         await countdown(
             () => this.gameSession.game.running, 
             this.gameSession.game.maxTime,
@@ -77,9 +93,10 @@ export class SketchAndVote extends Gamemode{
     }
 
     protected override end(): void{
+        this.numRounds -= 1;
+
         if (this.numRounds > 0){ // Keeps calling gameLoop until the number of rounds is equal to 0
             console.log("SKETCH AND VOTE NEW ROUND");
-            this.numRounds -= 1;
             this.gameLoop();
         }else{ // All rounds have concluded
             console.log("SKETCH AND VOTE OVER!");

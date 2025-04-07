@@ -8,7 +8,7 @@ namespace SketchAndVote{
     export interface State{
         playersReady: number; // The number of players ready to play
         imageOptions: string[];
-        selectedImage: string;
+        selectedImage: string; // This var is reused for the image in each round
         loading: boolean;
         pickTime: number;
     }

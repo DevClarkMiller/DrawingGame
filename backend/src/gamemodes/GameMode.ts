@@ -24,6 +24,10 @@ export default abstract class Gamemode{
         this.io.to(this.roomId).emit(name, data);
     }
 
+    protected eventTo(to: string, name: string, data: any){
+        this.io.to(to).emit(name, data);
+    }
+
     protected abstract gameLoop(): Promise<void>;
 
     public init(): void{}

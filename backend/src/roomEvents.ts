@@ -55,7 +55,7 @@ export function manageRoom(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
         const roomId = randomUUID().substring(0, ROOM_ID_LEN);
         const newRoom: Room = {id: roomId, url: `${CLIENT_URL}/joinRoom?roomId=${roomId}`};
 
-        const host: Player = {roomId, name: hostName, isHost: true};
+        const host: Player = {roomId, name: hostName, isHost: true, socketId: socket.id};
 
         console.log(`CREATING ROOM ${roomId}`);
         rooms.set(roomId, {host, room: newRoom, players: [host], messages: []}); // Init with an array containing only the host
@@ -86,6 +86,8 @@ export function manageRoom(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
             socket.emit("roomNotFound", `${player.roomId} was not found`);
             return;
         }
+
+        player.socketId = socket.id;
 
         // Give the player a random name if they somehow don't have one
         if (!player.name) player.name = randomName();

@@ -157,6 +157,11 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
     }
 
     useEffect(() =>{
+        if (sketchVote?.selectedImage)
+            console.log(sketchVote.selectedImage);
+    }, [sketchVote?.selectedImage]);
+
+    useEffect(() =>{
         // Note that some of the callbacks are defined here, this is if they're simple, else they get their own dedicated function
         const socketEvents: [name: string, callBack: (...args: any[]) => void][] = [
             // Standard Socket Events
@@ -181,7 +186,8 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
 
             // Update the time left on the game
             ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})],
-            ['imagePickTimeDecrease', (newTime: number) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_PICK_TIME, payload: newTime})]
+            ['imagePickTimeDecrease', (newTime: number) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_PICK_TIME, payload: newTime})],
+            ['nextImage', (image: string) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_SELECTED_IMAGE, payload: image})]
         ];
 
         // Turn on each event
