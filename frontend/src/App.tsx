@@ -16,6 +16,7 @@ import StandardGame from "./games/StandardGame";
 
 // Components
 import Header from "@components/Header";
+import DraggableImage from "@components/DraggableImage";
 
 // Context
 import SocketProvider from "@context/SocketProvider";
@@ -43,6 +44,7 @@ function App() {
           <AppContext.Provider value={{logger: logger}}>
             <Header />
             <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
+              <DraggableImage />
               <Routes>
                 <Route path="/joinRoom" element={<JoinRoom />} />
                 <Route path="/" element={<CreateRoom />} />
