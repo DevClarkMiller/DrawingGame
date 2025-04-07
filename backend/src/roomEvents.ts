@@ -6,6 +6,29 @@ import { Player, Room, RoomDetails, Message } from "@def";
 import { io, rooms, players, ROOM_ID_LEN, CLIENT_URL } from '@src/index';
 import { endGame } from './gameEvents/commonGameEvents';
 
+/**
+ * Brief: Each tick the callback is triggered with the time remaining
+ * @param isRunning Checks if the countdown should still be running
+ * @param duration The duration of the countdown
+*/
+export async function countdown(isRunning: () => boolean, duration: number, callback?: (duration: number) => void): Promise<any>{
+    const loop = new Promise<void>((resolve) =>{
+        const interval = setInterval(() => {
+            if (duration <= 0 || !isRunning()){ // If time runs out or game is stopped, quit interval
+                clearInterval(interval);
+                resolve();   
+            }
+            else{
+                duration -= 1; // Subtract one second from the game
+                if (callback) callback(duration);
+            }
+        }, 1000); // Execute every second
+
+    });
+
+    await loop;
+}
+
 export function endRoom(player: Player, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>){
     console.log(`Ending room: ${player.roomId}`);
     // Check if room exists

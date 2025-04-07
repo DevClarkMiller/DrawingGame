@@ -51,10 +51,16 @@
         <mxCell id="AU1us8Je4qrewipDgEh9-16" value="Add gamemode to collection" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="440" y="310" width="120" height="40" as="geometry" />
         </mxCell>
+        <mxCell id="AU1us8Je4qrewipDgEh9-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="AU1us8Je4qrewipDgEh9-19" target="AU1us8Je4qrewipDgEh9-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="AU1us8Je4qrewipDgEh9-19" value="Event[playerPickImage]" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="610" y="60" width="140" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="AU1us8Je4qrewipDgEh9-20" value="Add image to player" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="AU1us8Je4qrewipDgEh9-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="AU1us8Je4qrewipDgEh9-20" target="AU1us8Je4qrewipDgEh9-31">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="AU1us8Je4qrewipDgEh9-20" value="Add image to gaming player object" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="610" y="130" width="140" height="40" as="geometry" />
         </mxCell>
         <mxCell id="AU1us8Je4qrewipDgEh9-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="AU1us8Je4qrewipDgEh9-22" target="AU1us8Je4qrewipDgEh9-23">
@@ -73,6 +79,9 @@
         </mxCell>
         <mxCell id="AU1us8Je4qrewipDgEh9-27" value="Each player is navigated to the game page" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="80" y="410" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="AU1us8Je4qrewipDgEh9-31" value="Add image to gaming player object" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="610" y="210" width="140" height="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

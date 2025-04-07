@@ -18,10 +18,10 @@ import { SocketContext } from '@context/SocketProvider';
 
 // The bar that will be on top of the canvas
 function Timer({currentGame}: {currentGame: Game | undefined}){
-    const timeLeftColor = useMemo(() =>{
-        if (!currentGame) return 'text-green-600';
-        return useColorRatio(currentGame.timeLeft, currentGame.maxTime);
-    }, [currentGame]);
+    const timeLeftColor = useColorRatio(
+        currentGame?.timeLeft ?? 0,
+        currentGame?.maxTime ?? 1 // prevent division by 0
+    );
 
     return(
         <div className='flex items-center text-light text-4xl'>

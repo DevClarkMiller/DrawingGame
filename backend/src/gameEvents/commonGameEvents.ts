@@ -35,6 +35,7 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 
         // Finally update the image after all the null checks
         gamingPlayer.data = image;
+        io.to(roomId).emit("playerReady", player.name);
     });
 
     socket.on('endGame', (roomId: string) =>{ endGame(roomId); });

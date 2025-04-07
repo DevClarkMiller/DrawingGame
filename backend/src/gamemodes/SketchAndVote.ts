@@ -3,6 +3,7 @@
 import { Game, Player, GamingPlayer, GameSession } from "@src/def";
 import Gamemode from "./GameMode";
 import  { Server, DefaultEventsMap } from 'socket.io';
+import { countdown } from "@src/roomEvents";
 
 export class SketchAndVote extends Gamemode{
     private numRounds: number = 5;
@@ -16,9 +17,18 @@ export class SketchAndVote extends Gamemode{
         super(gameSession, roomId, io);
     }
 
-    public override init(): void{
+    public override async init(): Promise<void>{
         // Start a 60 second timer, once it executes the start function is called
         this.event('nav', 'sketchAndVote');
+
+        await countdown(
+            () => true, // Always return true for now 
+            45, // Players only get 45 seconds to pick their image
+            (duration: number) => {
+                this.event('imagePickTimeDecrease', duration); // Let the player know the current time left
+            } 
+        );
+
         setTimeout(() =>{
             this.start();
         }, 60000)
@@ -54,23 +64,15 @@ export class SketchAndVote extends Gamemode{
     }
 
     public async gameLoop(): Promise<void>{
-        const loop = new Promise<void>((resolve) =>{
-            // Setup for the new round here
-            this.initRound();
+        await countdown(
+            () => this.gameSession.game.running, 
+            this.gameSession.game.maxTime,
+            (duration: number) => {
+                this.gameSession.game.timeLeft = duration;
+                this.event('timeDecrease', this.gameSession.game.timeLeft); // Let the player know the current time left
+            } 
+        );
 
-            const interval = setInterval(() => {
-                if (this.gameSession.game.timeLeft <= 0 || !this.gameSession.game.running){ // If time runs out or game is stopped, quit interval
-                    clearInterval(interval);
-                    resolve();   
-                }
-                else{
-                    this.gameSession.game.timeLeft -= 1; // Subtract one second from the game
-                    this.event('timeDecrease', this.gameSession.game.timeLeft); // Let the player know the current time left
-                }
-            }, 1000); // Execute every second
-        });
-
-        await loop;
         this.end();
     }
 
