@@ -5,6 +5,7 @@ import randomSentence from '@lib/randomSentence';
 
 // Components
 import ImageOptions from './ImageOptions';
+import Timer from '@components/Timer';
 
 // Context
 import { SocketContext } from '@context/SocketProvider';
@@ -39,6 +40,7 @@ function SketchAndVoteLand() {
         <>
             <form onSubmit={onSubmitSentence} className='card card-gradient'>
                 <div className='inner-card font-bold'>
+                    {sketchVote && <Timer timeLeft={sketchVote.pickTime} maxTime={45} />}
                     <div className={`text-3xl mb-4 ${readyColor}`}>{sketchVote?.playersReady} / {players.length} players ready</div>
                     <label className='text-4xl mb-5'>Your Sentence 🥳</label>
                     <input value={sentence} onChange={e => setSentence(e.target.value)} placeholder='Your sentence here' className='text-input w-2/3 text-center text-3xl p-3'/>

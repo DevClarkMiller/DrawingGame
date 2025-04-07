@@ -180,7 +180,8 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             ['playerReady', () => dispatchSketchVote({type: SketchAndVote.ActionKind.PLAYER_READY})],
 
             // Update the time left on the game
-            ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})] 
+            ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})],
+            ['imagePickTimeDecrease', (newTime: number) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_PICK_TIME, payload: newTime})]
         ];
 
         // Turn on each event

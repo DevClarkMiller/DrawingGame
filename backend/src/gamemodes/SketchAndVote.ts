@@ -29,9 +29,7 @@ export class SketchAndVote extends Gamemode{
             } 
         );
 
-        setTimeout(() =>{
-            this.start();
-        }, 60000)
+        this.start();
     }
 
     public setNumRounds(numRounds: number): void{
@@ -43,6 +41,8 @@ export class SketchAndVote extends Gamemode{
     */
     private initRound(): void{
         this.event("newRound", this.numRounds);
+
+        // Emit the player list
     }
 
     public override async start(): Promise<void>{
