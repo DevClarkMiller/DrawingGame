@@ -4,6 +4,8 @@ import { Game, Player, GamingPlayer, GameSession } from "@src/def";
 import Gamemode from "./GameMode";
 import  { Server, DefaultEventsMap } from 'socket.io';
 import { countdown } from "@src/roomEvents";
+import randomItem from "@lib/randomItem";
+import DEFAULT_IMAGES from "@lib/defaultImages";
 
 export class SketchAndVote extends Gamemode{
     private numRounds: number = 0;
@@ -23,7 +25,7 @@ export class SketchAndVote extends Gamemode{
 
         await countdown(
             () => true, // Always return true for now 
-            45, // Players only get 45 seconds to pick their image
+            40, // Players only get 40 seconds to pick their image
             (duration: number) => {
                 this.event('imagePickTimeDecrease', duration); // Let the player know the current time left
             } 
@@ -49,7 +51,7 @@ export class SketchAndVote extends Gamemode{
         gamingPlayers.forEach(gamingPlayer =>{
             let images: string[] = this.playerImages.get(gamingPlayer.player.name as string) as string[];
             
-            const image: string | undefined= images.pop();
+            const image: string | undefined = images.pop();
 
             if (image){
                 this.eventTo(gamingPlayer.player.socketId, "nextImage", image); // Broadcast to the specific player
@@ -63,7 +65,11 @@ export class SketchAndVote extends Gamemode{
 
         // Get a list of all the images from each player
         let images: string[] = [];
-        players.forEach(player => images.push(player.data as string));
+        players.forEach(player => {
+            player.data = player.data ?? randomItem(DEFAULT_IMAGES);
+            images.push(player.data as string); // Uses a default image if the player didn't make a selection in time
+        });
+
         // Now for each player, set their possible images
         players.forEach(player =>{
             const possibleImages: string[] = images.filter(img => img != player.data as string);

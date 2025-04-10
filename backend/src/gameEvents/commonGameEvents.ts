@@ -33,9 +33,12 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
 
         const gamingPlayer: GamingPlayer = gameSession.players.get(player.name as string) as GamingPlayer;
 
-        // Finally update the image after all the null checks
+        // Won't broadcast that the player is ready again if they just change the image
+        if (gamingPlayer.data === null){
+            io.to(roomId).emit("playerReady", player.name);
+        }
+
         gamingPlayer.data = image;
-        io.to(roomId).emit("playerReady", player.name);
     });
 
     socket.on('endGame', (roomId: string) =>{ endGame(roomId); });

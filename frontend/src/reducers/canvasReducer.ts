@@ -7,6 +7,7 @@ export type State = {
     usingFill: boolean;
     strokeStyle: string;
     lineWidth: number;
+    history: string[];
 }
 
 export enum ActionKind{
@@ -16,6 +17,7 @@ export enum ActionKind{
     SET_USING_FILL = 4,
     SET_STROKE_STYLE = 5,
     SET_LINE_WIDTH = 6,
+    ADD_HISTORY = 7,
 
     RESET = 50
 }
@@ -27,6 +29,7 @@ export const INITIAL: State = {
     mousePos: null,
     strokeStyle: '#000000',
     usingFill: false,
+    history: []
 };
 
 export interface Action{
@@ -38,17 +41,19 @@ export function reducer(state: State, {type, payload = null}: Action){
     switch(type){
         // Setters
         case ActionKind.SET_PAINTING:
-            return { ...state, isPainting: payload as boolean };
+            return { ...state, isPainting: payload };
         case ActionKind.SET_USING_FILL:
-            return { ...state, usingFill: payload as boolean };
+            return { ...state, usingFill: payload };
         case ActionKind.SET_LINE_WIDTH:
-            return { ...state, lineWidth: payload as number };
+            return { ...state, lineWidth: payload };
         case ActionKind.SET_STROKE_STYLE:
-            return { ...state, strokeStyle: payload as string };
+            return { ...state, strokeStyle: payload };
         case ActionKind.SET_MOUSE_POS:
-            return { ...state, mousePos: payload as Coord };
+            return { ...state, mousePos: payload };
         case ActionKind.SET_CURRENT_IMAGE:
-            return { ...state, currentImage: payload as string };
+            return { ...state, currentImage: payload };
+        case ActionKind.ADD_HISTORY: 
+            return { ...state, history: [...state.history, payload]} // Appends image to history
 
         case ActionKind.RESET:
             return state = INITIAL; // Replace state with 

@@ -14,7 +14,6 @@ interface CanvasProps {
     width: number;
 }
 
-
 const Canvas = (props: CanvasProps) =>{
     // Refs
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -38,6 +37,8 @@ const Canvas = (props: CanvasProps) =>{
     function setLineWidth(lineWidth: number) { dispatch({type: ActionKind.SET_LINE_WIDTH, payload: lineWidth}); }
     function setUsingFill(usingFill: boolean) { dispatch({type: ActionKind.SET_USING_FILL, payload: usingFill}); }
     function setStrokeStyle(strokeStyle: string) { dispatch({type: ActionKind.SET_STROKE_STYLE, payload: strokeStyle}); }
+
+    function addHistory(image: string) { dispatch({type: ActionKind.ADD_HISTORY, payload: image}); }
 
     // Delete the canvas and add it to the undo stack
     function deleteCanvas(){
@@ -274,6 +275,13 @@ const Canvas = (props: CanvasProps) =>{
         // Clear out the redo stack
         setRedoStack([]);
     }, [canvasRef, state?.isPainting]);
+
+    // Any time the current image is updated, add to history
+    useEffect(() => {
+        if (state?.currentImage){
+            addHistory(state.currentImage);
+        }
+    }, [state?.currentImage]);
 
     useEffect(() =>{
         if (!canvasRef.current) return;
