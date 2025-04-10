@@ -7,7 +7,7 @@ import {Resizable} from 'react-resizable';
 // Icons
 import { VscChromeMinimize } from "react-icons/vsc";
 
-function DraggableImage() {
+function DraggableImage({src}: {src: string}) {
     const nodeRef = useRef<HTMLDivElement>(null);
 
     // State
@@ -24,7 +24,7 @@ function DraggableImage() {
             bounds="body"
             handle=".imageHeader"
         >
-            <div className='hover:cursor-move z-50 border-gray-500 border-2 rounded overflow-clip' ref={nodeRef}>
+            <div className='absolute hover:cursor-move z-50 border-gray-500 border-2 rounded overflow-clip' ref={nodeRef}>
                 <Resizable
                     width={dimensions.width}
                     height={dimensions.height}
@@ -33,22 +33,22 @@ function DraggableImage() {
                     maxConstraints={[800, 600]}
                 >
                     <div 
-                        style={!minimized ? {width: dimensions.width, height: dimensions.height} : {}}
+                        style={!minimized && src ? {width: dimensions.width, height: dimensions.height} : {}}
                     >
                         <div className='imageHeader bg-gray-500 flex justify-end w-full text-white'>
                             <button onClick={() => setMinimized(!minimized)} className='hover:text-blue-500 clean-btn'>
                                 <VscChromeMinimize className='text-2xl nice-trans'/>
                             </button>
                         </div>
-                        {!minimized ?
+                        {!minimized && src ?
                             (<div className='size-full'>
                                 <img 
-                                    src='https://www.exitlag.com/blog/wp-content/uploads/2024/12/Who-Is-Steve-in-Minecraft_-The-Story-Behind-the-Iconic-Character.webp'
+                                    src={src}
                                     className='size-full object-fill select-none pointer-events-none'
                                     draggable='false'
                                 />
                             </div>)
-                            : (<div className='p-2'>Image</div>)
+                            : (<div className='p-2'>Your Image</div>)
                         }
                     </div>
                 </Resizable>

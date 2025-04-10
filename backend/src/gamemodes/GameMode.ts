@@ -43,6 +43,7 @@ export default abstract class Gamemode{
     }
 
     protected end(): void{
+        console.log(this.eventEndName);
         this.event(this.eventEndName, "Game is over"); // Placeholder until I determine what data needs to be sent over
         this.gameSession.game.running = false;
     };

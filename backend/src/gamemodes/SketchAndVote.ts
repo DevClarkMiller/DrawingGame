@@ -99,7 +99,8 @@ export class SketchAndVote extends Gamemode{
             console.log("SKETCH AND VOTE NEW ROUND");
             this.gameLoop();
         }else{ // All rounds have concluded
-            console.log("SKETCH AND VOTE OVER!");
+            super.end();
+            // console.log("SKETCH AND VOTE OVER!");
         }
     }
 }

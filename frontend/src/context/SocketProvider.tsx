@@ -156,10 +156,17 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
         dispatchSketchVote({type: SketchAndVote.ActionKind.SET_LOADING, payload: false});
     }
 
-    useEffect(() =>{
-        if (sketchVote?.selectedImage)
-            console.log(sketchVote.selectedImage);
-    }, [sketchVote?.selectedImage]);
+    function onGameEnded(msg: string){
+        logger.log(msg);
+
+        switch(currentGame.name){
+            case "SketchAndVote":
+                logger.log("SKETCH AND VOTE NEXT SCREEN!");
+                navigate('/sketchAndVoteEnd');
+                break;
+        }
+    }
+
 
     useEffect(() =>{
         // Note that some of the callbacks are defined here, this is if they're simple, else they get their own dedicated function
@@ -183,6 +190,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             ['gameStarted', onGameStart],
             ['sentenceParsed', onSentenceParsed],
             ['playerReady', () => dispatchSketchVote({type: SketchAndVote.ActionKind.PLAYER_READY})],
+            ['gameEnded', onGameEnded],
 
             // Update the time left on the game
             ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})],
