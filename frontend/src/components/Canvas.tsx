@@ -12,6 +12,7 @@ import {ActionKind, INITIAL, reducer} from '@reducers/canvasReducer';
 interface CanvasProps {
     height: number;
     width: number;
+    onImage?: (image: string) => void;
 }
 
 const Canvas = (props: CanvasProps) =>{
@@ -37,8 +38,6 @@ const Canvas = (props: CanvasProps) =>{
     function setLineWidth(lineWidth: number) { dispatch({type: ActionKind.SET_LINE_WIDTH, payload: lineWidth}); }
     function setUsingFill(usingFill: boolean) { dispatch({type: ActionKind.SET_USING_FILL, payload: usingFill}); }
     function setStrokeStyle(strokeStyle: string) { dispatch({type: ActionKind.SET_STROKE_STYLE, payload: strokeStyle}); }
-
-    function addHistory(image: string) { dispatch({type: ActionKind.ADD_HISTORY, payload: image}); }
 
     // Delete the canvas and add it to the undo stack
     function deleteCanvas(){
@@ -278,8 +277,8 @@ const Canvas = (props: CanvasProps) =>{
 
     // Any time the current image is updated, add to history
     useEffect(() => {
-        if (state?.currentImage){
-            addHistory(state.currentImage);
+        if (state?.currentImage && props.onImage){
+            props.onImage(state.currentImage);
         }
     }, [state?.currentImage]);
 

@@ -50,7 +50,6 @@ function ImageOptions(
             show={show} 
             setShow={setShow}
             hideFooter
-            hideExit
             centerTitle
             useMaxWidth
             CustomBody={CustomBody}>

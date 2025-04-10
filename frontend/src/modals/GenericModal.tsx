@@ -1,5 +1,8 @@
 import React from "react";
 
+// Icons 
+import { ImCross } from "react-icons/im";
+
 interface GenericModalProps{
     children?: React.ReactNode;
     show: any;
@@ -60,7 +63,7 @@ const GenericModal = ({
                 {/* <!-- Modal header --> */}
                 <div className="size flex justify-between items-center bg-regular text-white text-xl rounded-t-md px-4 py-2">
                     <h3 className={`font-semibold w-full ${titleColor} ${centerTitle && "text-center"} overflow-hidden overflow-ellipsis whitespace-nowrap`}>{title}</h3>
-                    {!hideExit && <button type="button" onClick={onModalClose}>x</button>}
+                    {!hideExit && <button className="text-2xl" type="button" onClick={onModalClose}><ImCross /></button>}
                 </div>
 
                 {/* <!-- Modal body --> */}

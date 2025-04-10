@@ -10,6 +10,7 @@ import { FaPerson } from "react-icons/fa6";
 
 // Context
 import { SocketContext } from '@context/SocketProvider';
+import { AppContext } from '@src/App';
 
 function PeopleCount({playerCount}: {playerCount: number}){
     return(
@@ -20,6 +21,7 @@ function PeopleCount({playerCount}: {playerCount: number}){
 // All games will be based on this, however will have additional context on top for their rules
 function StandardGame() {
     const { currentGame, players } = useContext(SocketContext);
+    const { onImage } = useContext(AppContext);
 
     return (
         <div className='game size-full flex flex-col items-center justify-center'>
@@ -27,7 +29,7 @@ function StandardGame() {
                 <PeopleCount playerCount={players?.length || 0}/>
                 {currentGame && <Timer timeLeft={currentGame?.timeLeft} maxTime={currentGame?.maxTime}/>}
             </div>
-            <Canvas width={550} height={550}/>
+            <Canvas onImage={onImage} width={550} height={550}/>
         </div>
     );
 }

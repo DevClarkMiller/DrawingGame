@@ -17,6 +17,7 @@ interface OnCreatedRoomParams{
     navigate: NavigateFunction;
     
 }
+
 function onCreatedRoom({currentPlayer, room, setLoading, setCurrentRoom, setCurrentPlayer, navigate}: OnCreatedRoomParams){
     if (currentPlayer) // Player will be given a name and has the isHost boolean set before this is called
         setCurrentPlayer({...currentPlayer, roomId: room.id}); // Set the roomId on current player

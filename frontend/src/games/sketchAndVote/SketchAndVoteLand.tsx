@@ -6,16 +6,15 @@ import randomSentence from '@lib/randomSentence';
 // Components
 import ImageOptions from './ImageOptions';
 import Timer from '@components/Timer';
+import DraggableImage from '@components/DraggableImage';
 
 // Context
 import { SocketContext } from '@context/SocketProvider';
-import { AppContext } from '@src/App';
 import useColorRatio from '@hooks/useColorRatio';
 
 // Here the minigame start, where users will pick their sentence
 function SketchAndVoteLand() {
     const { parseSentence, sketchVote, players } = useContext(SocketContext);
-    const { logger } = useContext(AppContext);
 
     const [show, setShow] = useState<boolean>(false);
     
@@ -45,11 +44,7 @@ function SketchAndVoteLand() {
                     <label className='text-4xl mb-5'>Your Sentence 🥳</label>
                     <input value={sentence} onChange={e => setSentence(e.target.value)} placeholder='Your sentence here' className='text-input w-2/3 text-center text-3xl p-3'/>
                     
-                    {sketchVote?.selectedImage &&
-                        <div className='w-2/3 lg:w-1/3 h-auto mt-5 flex justify-center items-center'>
-                            <img src={sketchVote?.selectedImage}/>
-                        </div>
-                    }
+                    {sketchVote?.selectedImage && <DraggableImage src={sketchVote?.selectedImage}/>}
                 </div>
             </form>
             <ImageOptions show={show} setShow={setShow}/>

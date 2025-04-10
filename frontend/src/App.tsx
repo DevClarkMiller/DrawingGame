@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useState} from "react";
 import { Route, Routes } from "react-router-dom";
 
 // Lib
@@ -27,31 +27,38 @@ import { useLogger } from "@hooks/useLogger";
 
 export type AppContextType = {
   logger: Logger;
+  onImage: (image: string) => void;
 }
 
 export const AppContext = createContext({} as AppContextType);
 
 function App() {
   const logger: Logger = useLogger();
+  const [imgHistory, setImgHistory] = useState<string[]>([]);
+
+  function onImage(image: string): void{
+    setImgHistory([...imgHistory, image]);
+    console.log(imgHistory);
+  }
 
   return (
     <div className="size-full min-h-screen text-main flex flex-col items-center justify-center flex-grow">
-        <SocketProvider logger={logger}>
-          <AppContext.Provider value={{logger: logger}}>
-            <Header />
-            <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
-              <Routes>
-                <Route path="/joinRoom" element={<JoinRoom />} />
-                <Route path="/" element={<CreateRoom />} />
-                <Route path="/manageRoom" element={<ManageRoom />} />
-                <Route path="/viewRoom" element={<ViewRoom />}/>
-                <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
-                <Route path="/sketchAndVoteEnd" element={<SketchAndVoteEnd />} />
-                <Route path="/standardGame" element={<SketchAndVoteGame />}/>
-              </Routes>
-            </main>
-          </AppContext.Provider>
-        </SocketProvider>
+        <AppContext.Provider value={{logger, onImage}}>
+          <SocketProvider logger={logger}>
+              <Header />
+              <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
+                <Routes>
+                  <Route path="/joinRoom" element={<JoinRoom />} />
+                  <Route path="/" element={<CreateRoom />} />
+                  <Route path="/manageRoom" element={<ManageRoom />} />
+                  <Route path="/viewRoom" element={<ViewRoom />}/>
+                  <Route path="/sketchAndVote" element={<SketchAndVoteLand />}/>
+                  <Route path="/sketchAndVoteEnd" element={<SketchAndVoteEnd />} />
+                  <Route path="/standardGame" element={<SketchAndVoteGame />}/>
+                </Routes>
+              </main>
+          </SocketProvider>
+        </AppContext.Provider>
     </div>
   );
 }

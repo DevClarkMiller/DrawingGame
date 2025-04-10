@@ -36,7 +36,7 @@ function DraggableImage({src}: {src: string}) {
                         style={!minimized && src ? {width: dimensions.width, height: dimensions.height} : {}}
                     >
                         <div className='imageHeader bg-gray-500 flex justify-end w-full text-white'>
-                            <button onClick={() => setMinimized(!minimized)} className='hover:text-blue-500 clean-btn'>
+                            <button type='button' onClick={() => setMinimized(!minimized)} className='hover:text-blue-500 clean-btn'>
                                 <VscChromeMinimize className='text-2xl nice-trans'/>
                             </button>
                         </div>
