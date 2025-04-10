@@ -22,6 +22,7 @@ import DraggableImage from "@components/DraggableImage";
 import SocketProvider from "@context/SocketProvider";
 
 // Styles
+import 'react-resizable/css/styles.css';
 
 export type AppContextType = {
   logger: Logger;
