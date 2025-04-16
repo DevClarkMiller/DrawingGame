@@ -23,7 +23,7 @@ namespace SketchAndVote{
         RESET_PLAYERS_READY = 15
     }
 
-    export const INITIAL: State = { playersReady: 0, imageOptions: [], selectedImage: "", loading: false, pickTime: 45 };
+    export const INITIAL: State = { playersReady: 0, imageOptions: [], selectedImage: "", loading: false, pickTime: 15 };
 
     export interface Action{
         type: ActionKind;

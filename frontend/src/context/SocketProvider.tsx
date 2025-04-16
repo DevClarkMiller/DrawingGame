@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, createContext, useEffect, useState, useReducer, useContext } from 'react';
+import React, { Dispatch, SetStateAction, createContext, useEffect, useState, useReducer, useContext, useCallback, useRef } from 'react';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
@@ -67,6 +67,13 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     const [players, dispatchPlayers] = useReducer(Players.reducer, Players.INITIAL);
     const [sketchVote, dispatchSketchVote] = useReducer(SketchAndVote.reducer, SketchAndVote.INITIAL);
 
+    // Refs
+    const currentRoomRef = useRef(currentRoom);
+
+    useEffect(() =>{
+        currentRoomRef.current = currentRoom;
+    }, [currentRoom]);
+
     useEffect(() => {
         if (sketchVote?.selectedImage){
             logger.log(sketchVote.selectedImage);
@@ -106,13 +113,12 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         socket.emit('parseSentence', sentence);
     }
 
-    function sendSketchHist(){
+    const sendSketchHist = useCallback(() =>{
         if (imgHistoryRef?.current?.length > 0){
-            console.log(currentRoom);
-            socket.emit('playerSketchImage', {ogImg: sketchVote?.selectedImage, newImgHist: imgHistoryRef.current, roomId: currentRoom?.id});
+            socket.emit('playerSketchImage', {ogImg: sketchVote?.selectedImage, newImgHist: imgHistoryRef.current, roomId: currentRoomRef.current?.id});
             clearImgHistory(); // Clear out the history
         }
-    }
+    }, [imgHistoryRef, currentPlayer, sketchVote]);
 
     // Event callbacks
     function onCreatedRoom(room: Room){

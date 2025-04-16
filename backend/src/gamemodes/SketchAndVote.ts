@@ -25,7 +25,7 @@ export class SketchAndVote extends Gamemode{
 
         await countdown(
             () => true, // Always return true for now 
-            30, // Players only get 30 seconds to pick their image
+            15, // Players only get 30 seconds to pick their image
             (duration: number) => {
                 this.event('imagePickTimeDecrease', duration); // Let the player know the current time left
             } 
@@ -97,8 +97,6 @@ export class SketchAndVote extends Gamemode{
     }
 
     public addSketch(player: string, ogImg: string, newImgHist: string[]): void{
-        console.log("ADDING SKETCH FROM " + player);
-
         if (!this.playerSketches.has(ogImg)){ // Initialize the value 
             this.playerSketches.set(ogImg, new Map<string, string[]>());
             return;
