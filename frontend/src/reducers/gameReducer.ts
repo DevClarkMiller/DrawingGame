@@ -6,7 +6,7 @@ namespace Games{
         SET_GAME = 2
     }
     
-    export const INITIAL: Game = { maxTime: 60, timeLeft: 60, name: "SketchAndVote", running: false };
+    export const INITIAL: Game = { maxTime: 30, timeLeft: 30, name: "SketchAndVote", running: false };
     
     export interface Action{
         type: ActionKind;

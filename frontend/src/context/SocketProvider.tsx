@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, createContext, useEffect, useState, useReducer } from 'react';
+import React, { Dispatch, SetStateAction, createContext, useEffect, useState, useReducer, useContext } from 'react';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
@@ -14,6 +14,9 @@ import SketchAndVote from '@reducers/sketchVoteReducer';
 
 // Custom hooks
 import { useSocket } from '@hooks/useSocket';
+
+// Context
+import { AppContext } from '@src/App';
 
 export type SocketContextType = {
     // State
@@ -45,8 +48,11 @@ export type SocketContextType = {
 }
 
 export const SocketContext = createContext<SocketContextType>({} as SocketContextType);
-function SocketProvider({logger, children}: {logger: Logger, children: React.ReactNode}) {
+function SocketProvider({children}: {children: React.ReactNode}) {
     const navigate: NavigateFunction = useNavigate();
+
+    // Context
+    const { imgHistoryRef, clearImgHistory, logger } = useContext(AppContext);
 
     const socket: Socket = useSocket(process.env.SERVER_URL as string || "http://localhost:5170");
     const [isConnected, setIsConnected] = useState<boolean>(socket?.connected);
@@ -100,8 +106,15 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
         socket.emit('parseSentence', sentence);
     }
 
-    // Event callbacks
+    function sendSketchHist(){
+        if (imgHistoryRef?.current?.length > 0){
+            console.log(currentRoom);
+            socket.emit('playerSketchImage', {ogImg: sketchVote?.selectedImage, newImgHist: imgHistoryRef.current, roomId: currentRoom?.id});
+            clearImgHistory(); // Clear out the history
+        }
+    }
 
+    // Event callbacks
     function onCreatedRoom(room: Room){
         if (currentPlayer) // Player will be given a name and has the isHost boolean set before this is called
             setCurrentPlayer({...currentPlayer, roomId: room.id}); // Set the roomId on current player
@@ -151,7 +164,6 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
     }
 
     function onSentenceParsed(urls: string[]){
-        logger.log(urls);
         dispatchSketchVote({type: SketchAndVote.ActionKind.SET_IMAGE_OPTIONS, payload: urls});
         dispatchSketchVote({type: SketchAndVote.ActionKind.SET_LOADING, payload: false});
     }
@@ -162,7 +174,17 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
         switch(currentGame.name){
             case "SketchAndVote":
                 logger.log("SKETCH AND VOTE NEXT SCREEN!");
+                sendSketchHist();
                 navigate('/sketchAndVoteEnd');
+                break;
+        }
+    }
+
+    function onNewRound(data: unknown){
+        switch(currentGame.name){
+            case "SketchAndVote": 
+                console.log(data as number);
+                sendSketchHist();
                 break;
         }
     }
@@ -191,6 +213,7 @@ function SocketProvider({logger, children}: {logger: Logger, children: React.Rea
             ['sentenceParsed', onSentenceParsed],
             ['playerReady', () => dispatchSketchVote({type: SketchAndVote.ActionKind.PLAYER_READY})],
             ['gameEnded', onGameEnded],
+            ['newRound', onNewRound],
 
             // Update the time left on the game
             ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})],

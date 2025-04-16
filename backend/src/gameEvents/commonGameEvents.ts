@@ -3,6 +3,7 @@ import { Game, GameSession, RoomDetails, GamingPlayer, Player } from "@def";
 import Gamemode from '@src/gamemodes/GameMode';
 import { gameFactory } from '@lib/gameFactory';
 import { io, games, sentenceParser, rooms, players, activeGamemodes } from '@src/index';
+import { SketchAndVote } from '@src/gamemodes/SketchAndVote';
 
 export function endGame(roomId: string){
     const gameSession: GameSession | undefined = games.get(roomId);
@@ -39,6 +40,17 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
         }
 
         gamingPlayer.data = image;
+    });
+
+    /**
+    * Brief: Adds the players sketch to their active SketchAndVote Gamemode
+    */
+    socket.on('playerSketchImage', async ({ogImg, newImgHist, roomId}: {ogImg: string, newImgHist: string[], roomId: string}) =>{
+        console.log('PLAYER SKETCH IMAGE', ogImg.length, newImgHist.length, roomId);
+        let gamemode = activeGamemodes.get(roomId);
+        if (!gamemode) return;
+        const player: Player = players.get(socket.id) as Player;
+        (gamemode as SketchAndVote).addSketch(player.name as string, ogImg, newImgHist);
     });
 
     socket.on('endGame', (roomId: string) =>{ endGame(roomId); });

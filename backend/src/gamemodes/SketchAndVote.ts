@@ -1,4 +1,3 @@
-
 // Types
 import { Game, Player, GamingPlayer, GameSession } from "@src/def";
 import Gamemode from "./GameMode";
@@ -10,6 +9,7 @@ import DEFAULT_IMAGES from "@lib/defaultImages";
 export class SketchAndVote extends Gamemode{
     private numRounds: number = 0;
     private playerImages: Map<string, string[]> = new Map<string, string[]>(); // Maps a players name to a stack of images that they will be able to draw
+    private playerSketches: Map<string, Map<string, string[]>> = new Map<string, Map<string, string[]>>(); // The key is the url of the image, the value is each player and their submission
 
     public constructor(
         gameSession: GameSession,
@@ -25,7 +25,7 @@ export class SketchAndVote extends Gamemode{
 
         await countdown(
             () => true, // Always return true for now 
-            40, // Players only get 40 seconds to pick their image
+            30, // Players only get 30 seconds to pick their image
             (duration: number) => {
                 this.event('imagePickTimeDecrease', duration); // Let the player know the current time left
             } 
@@ -76,8 +76,6 @@ export class SketchAndVote extends Gamemode{
             this.playerImages.set(player.player.name as string, possibleImages);
         });
 
-        console.log(this.playerImages);
-
         // Set num rounds equal to n(players) - 1
         this.numRounds = players.size - 1;
         console.log(`NUM ROUNDS: ${this.numRounds}`);
@@ -96,6 +94,19 @@ export class SketchAndVote extends Gamemode{
         );
 
         this.end();
+    }
+
+    public addSketch(player: string, ogImg: string, newImgHist: string[]): void{
+        console.log("ADDING SKETCH FROM " + player);
+
+        if (!this.playerSketches.has(ogImg)){ // Initialize the value 
+            this.playerSketches.set(ogImg, new Map<string, string[]>());
+            return;
+        }
+
+        // Add the players image to this sketch map
+        let sketches = this.playerSketches.get(ogImg) as Map<string, string[]>;
+        sketches.set(player, newImgHist);
     }
 
     protected override end(): void{

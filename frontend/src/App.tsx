@@ -1,4 +1,4 @@
-import { createContext, useState} from "react";
+import { createContext, useEffect, useRef, useState} from "react";
 import { Route, Routes } from "react-router-dom";
 
 // Lib
@@ -27,7 +27,10 @@ import { useLogger } from "@hooks/useLogger";
 
 export type AppContextType = {
   logger: Logger;
+  imgHistory: string[];
+  imgHistoryRef: React.RefObject<string[]>;
   onImage: (image: string) => void;
+  clearImgHistory: () => void;
 }
 
 export const AppContext = createContext({} as AppContextType);
@@ -35,16 +38,25 @@ export const AppContext = createContext({} as AppContextType);
 function App() {
   const logger: Logger = useLogger();
   const [imgHistory, setImgHistory] = useState<string[]>([]);
+  const imgHistoryRef = useRef(imgHistory);
+
+  useEffect(() =>{
+    imgHistoryRef.current = imgHistory;
+  }, [imgHistory]);
 
   function onImage(image: string): void{
-    setImgHistory([...imgHistory, image]);
-    console.log(imgHistory);
+    setImgHistory(prevHist => [...prevHist, image]);
+    console.log(imgHistory.length);
+  }
+
+  function clearImgHistory(){
+    setImgHistory([]);
   }
 
   return (
     <div className="size-full min-h-screen text-main flex flex-col items-center justify-center flex-grow">
-        <AppContext.Provider value={{logger, onImage}}>
-          <SocketProvider logger={logger}>
+        <AppContext.Provider value={{logger, onImage, imgHistory, clearImgHistory, imgHistoryRef}}>
+          <SocketProvider>
               <Header />
               <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">
                 <Routes>
