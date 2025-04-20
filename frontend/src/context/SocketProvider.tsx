@@ -26,6 +26,7 @@ export type SocketContextType = {
     currentGame: Game | undefined;
     loading: boolean;
     players: Player[];
+    currentPlayer: Player | undefined;
     sketchVote: SketchAndVote.State;
     numRounds: number;
     currRound: number;
@@ -47,6 +48,7 @@ export type SocketContextType = {
     // Game management
     initGame: () => void;
     parseSentence: (sentence: string) => void;
+    nextImage: () => void;
 }
 
 export const SocketContext = createContext<SocketContextType>({} as SocketContextType);
@@ -124,6 +126,11 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             clearImgHistory(); // Clear out the history
         }
     }, [imgHistoryRef, currentPlayer, sketchVote]);
+
+    function nextImage(){
+        if (!currentPlayer?.isHost) return; // Only the host can select the next image
+        socket.emit('nextImage', currentRoomRef.current?.id);
+    }
 
     // Event callbacks
     function onCreatedRoom(room: Room){
@@ -207,6 +214,9 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         setNumRounds(num);
     }
 
+    function onNextFinalImage({image, sketches}: {image: string, sketches: string[]}){
+        logger.log(image, sketches.length);
+    }
 
     useEffect(() =>{
         // Note that some of the callbacks are defined here, this is if they're simple, else they get their own dedicated function
@@ -237,7 +247,8 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             // Update the time left on the game
             ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})],
             ['imagePickTimeDecrease', (newTime: number) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_PICK_TIME, payload: newTime})],
-            ['nextImage', (image: string) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_SELECTED_IMAGE, payload: image})]
+            ['nextImage', (image: string) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_SELECTED_IMAGE, payload: image})],
+            ['nextFinalImage', onNextFinalImage]
         ];
 
         // Turn on each event
@@ -256,14 +267,15 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     return (
         <SocketContext.Provider value={{
             loading, setLoading,
-            players, dispatchPlayers,
+            players, dispatchPlayers, currentPlayer,
             events, setEvents, 
             isConnected, setIsConnected, 
             joinRoom, createRoom, leaveRoom,
             initGame, parseSentence, sketchVote, dispatchSketchVote,
             currentRoom, setCurrentRoom,
             currentGame, dispatchGame,
-            numRounds, currRound
+            numRounds, currRound, 
+            nextImage
         }}>
             {children}
         </SocketContext.Provider>

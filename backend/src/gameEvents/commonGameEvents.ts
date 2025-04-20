@@ -42,11 +42,16 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
         gamingPlayer.data = image;
     });
 
+    socket.on('nextImage', (roomId: string) =>{
+        let gamemode = activeGamemodes.get(roomId);
+        if (!gamemode) return;
+        (gamemode as SketchAndVote).nextImage();
+    });
+
     /**
     * Brief: Adds the players sketch to their active SketchAndVote Gamemode
     */
     socket.on('playerSketchImage', async ({ogImg, newImgHist, roomId}: {ogImg: string, newImgHist: string[], roomId: string}) =>{
-        console.log('PLAYER SKETCH IMAGE', ogImg.length, newImgHist.length, roomId);
         let gamemode = activeGamemodes.get(roomId);
         if (!gamemode) return;
         const player: Player = players.get(socket.id) as Player;
@@ -56,7 +61,6 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
     socket.on('endGame', (roomId: string) =>{ endGame(roomId); });
 
     socket.on('initGame', ({game, roomId}: {game: Game, roomId: string}) =>{
-        console.log("INIT GAME");
         // Create a new game session
         let gameSession: GameSession = {game: game, players: new Map<string, GamingPlayer>};
 

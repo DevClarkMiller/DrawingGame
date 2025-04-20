@@ -46,12 +46,26 @@ function App() {
 
   function onImage(image: string): void{
     setImgHistory(prevHist => [...prevHist, image]);
-    console.log(imgHistory.length);
   }
 
   function clearImgHistory(){
     setImgHistory([]);
   }
+
+  // Make sure users meant to refresh
+  useEffect(() =>{
+    const handleBeforeUnload = (e: any) =>{
+      console.log("NOW REFRESHING");
+      e.preventDefault();
+      e.returnValue = "";
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   return (
     <div className="size-full min-h-screen text-main flex flex-col items-center justify-center flex-grow">

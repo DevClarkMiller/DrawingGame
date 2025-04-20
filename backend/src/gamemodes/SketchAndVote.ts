@@ -10,6 +10,7 @@ export class SketchAndVote extends Gamemode{
     private numRounds: number = 0;
     private playerImages: Map<string, string[]> = new Map<string, string[]>(); // Maps a players name to a stack of images that they will be able to draw
     private playerSketches: Map<string, Map<string, string[]>> = new Map<string, Map<string, string[]>>(); // The key is the url of the image, the value is each player and their submission
+    private imagesToDisplay: string[] = []; // Slowly pop off each image from here, whenever the host click the next image button
 
     public constructor(
         gameSession: GameSession,
@@ -116,7 +117,17 @@ export class SketchAndVote extends Gamemode{
             this.gameLoop();
         }else{ // All rounds have concluded
             super.end();
-            // console.log("SKETCH AND VOTE OVER!");
+            this.imagesToDisplay = Array.from(this.playerImages.keys());
+        }
+    }
+
+    public nextImage(): void{
+        let img: string;
+        if (this.imagesToDisplay.length > 0){
+            img = this.imagesToDisplay.pop() as string;
+            this.event("nextFinalImage", {image: img, sketches: this.playerImages.get(img)});
+        }else{
+            console.log("OUT OF IMAGES");
         }
     }
 }
