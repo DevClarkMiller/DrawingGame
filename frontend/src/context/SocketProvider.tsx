@@ -27,6 +27,8 @@ export type SocketContextType = {
     loading: boolean;
     players: Player[];
     sketchVote: SketchAndVote.State;
+    numRounds: number;
+    currRound: number;
 
     // State setters
     setIsConnected: Dispatch<SetStateAction<boolean>>;
@@ -66,6 +68,9 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     const [currentGame, dispatchGame] = useReducer(Games.reducer, Games.INITIAL);
     const [players, dispatchPlayers] = useReducer(Players.reducer, Players.INITIAL);
     const [sketchVote, dispatchSketchVote] = useReducer(SketchAndVote.reducer, SketchAndVote.INITIAL);
+
+    const [numRounds, setNumRounds] = useState<number>(5);
+    const [currRound, setCurrRound] = useState<number>(0);
 
     // Refs
     const currentRoomRef = useRef(currentRoom);
@@ -160,6 +165,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     function onGameStart(game: Game){
+        setCurrRound(0);
         logger.log("Game starting", game);
         dispatchGame({type: Games.ActionKind.SET_GAME, payload: game}); // Set the currentGame
         // Navigate the player based off the gamemode
@@ -190,9 +196,15 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         switch(currentGame.name){
             case "SketchAndVote": 
                 console.log(data as number);
+                setCurrRound(currRound + 1);
                 sendSketchHist();
                 break;
         }
+    }
+
+    function onNumRounds(num: number){
+        console.log("Num rounds", num);
+        setNumRounds(num);
     }
 
 
@@ -220,6 +232,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             ['playerReady', () => dispatchSketchVote({type: SketchAndVote.ActionKind.PLAYER_READY})],
             ['gameEnded', onGameEnded],
             ['newRound', onNewRound],
+            ['numRounds', onNumRounds],
 
             // Update the time left on the game
             ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})],
@@ -249,7 +262,8 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             joinRoom, createRoom, leaveRoom,
             initGame, parseSentence, sketchVote, dispatchSketchVote,
             currentRoom, setCurrentRoom,
-            currentGame, dispatchGame
+            currentGame, dispatchGame,
+            numRounds, currRound
         }}>
             {children}
         </SocketContext.Provider>

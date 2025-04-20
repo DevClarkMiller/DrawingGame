@@ -79,6 +79,7 @@ export class SketchAndVote extends Gamemode{
         // Set num rounds equal to n(players) - 1
         this.numRounds = players.size - 1;
         console.log(`NUM ROUNDS: ${this.numRounds}`);
+        this.event('numRounds', this.numRounds);
         super.start();
     }
 

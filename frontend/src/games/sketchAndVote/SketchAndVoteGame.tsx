@@ -8,12 +8,12 @@ import DraggableImage from '@components/DraggableImage';
 import { SocketContext } from '@context/SocketProvider';
 
 function SketchAndVoteGame() {
-    const { sketchVote } = React.useContext(SocketContext);
+    const { sketchVote, numRounds, currRound } = React.useContext(SocketContext);
 
     return (
         <>
             <DraggableImage src={sketchVote?.selectedImage}/>
-            <StandardGame />
+            <StandardGame numRounds={numRounds} currRound={currRound}/>
         </>
     );
 }

@@ -23,6 +23,7 @@ function DraggableImage({src}: {src: string}) {
             nodeRef={nodeRef as React.RefObject<HTMLElement>}
             bounds="body"
             handle=".imageHeader"
+            defaultPosition={{x: -100, y: -350}}
         >
             <div className='absolute hover:cursor-move z-50 border-gray-500 border-2 rounded overflow-clip' ref={nodeRef}>
                 <Resizable
