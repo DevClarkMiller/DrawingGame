@@ -2,8 +2,6 @@ import React, { Dispatch, SetStateAction, createContext, useEffect, useState, us
 import { NavigateFunction, useNavigate } from 'react-router-dom';
 import { Socket } from 'socket.io-client';
 
-import { Logger } from '@lib/logger';
-
 // Types
 import { Room, Player, Game } from '@def';
 
@@ -76,10 +74,15 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
     // Refs
     const currentRoomRef = useRef(currentRoom);
+    const sketchVoteRef = useRef(sketchVote);
 
     useEffect(() =>{
         currentRoomRef.current = currentRoom;
     }, [currentRoom]);
+
+    useEffect(() => {
+        sketchVoteRef.current = sketchVote;
+    }, [sketchVote]);
 
     useEffect(() => {
         if (sketchVote?.selectedImage){
@@ -121,14 +124,14 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     const sendSketchHist = useCallback(() =>{
-        if (imgHistoryRef?.current?.length > 0){
-            socket.emit('playerSketchImage', {ogImg: sketchVote?.selectedImage, newImgHist: imgHistoryRef.current, roomId: currentRoomRef.current?.id});
-            clearImgHistory(); // Clear out the history
-        }
-    }, [imgHistoryRef, currentPlayer, sketchVote]);
+        // if (imgHistoryRef?.current?.length > 0){
+        if (!sketchVoteRef.current?.selectedImage) return;
+        socket.emit('playerSketchImage', {ogImg: sketchVoteRef.current?.selectedImage, newImgHist: imgHistoryRef.current, roomId: currentRoomRef.current?.id});
+        clearImgHistory(); // Clear out the history
+        // }
+    }, [imgHistoryRef, currentPlayer, sketchVoteRef]);
 
     function nextImage(){
-        logger.log("MOVING ONTO NEXT IMAGE!");
         if (!currentPlayer?.isHost) return; // Only the host can select the next image
         socket.emit('nextImage', currentRoomRef.current?.id);
     }
@@ -203,7 +206,6 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     function onNewRound(data: unknown){
         switch(currentGame.name){
             case "SketchAndVote": 
-                console.log(data as number);
                 setCurrRound(currRound + 1);
                 sendSketchHist();
                 break;
@@ -215,8 +217,14 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         setNumRounds(num);
     }
 
-    function onNextFinalImage({image, sketches}: {image: string, sketches: string[]}){
-        logger.log(image, sketches.length);
+    function onNextFinalImage(data: {image: string, sketches: Array<any>}){
+        dispatchSketchVote({type: SketchAndVote.ActionKind.SET_FINAL_SKETCH, payload: data});
+        // logger.log(data);
+    }
+
+
+    function onSketchOrder(sketchOrder: string){
+        dispatchSketchVote({type: SketchAndVote.ActionKind.SET_SKETCH_ORDER, payload: sketchOrder});
     }
 
     useEffect(() =>{
@@ -249,7 +257,8 @@ function SocketProvider({children}: {children: React.ReactNode}) {
             ['timeDecrease', (newTime: number) =>  dispatchGame({type: Games.ActionKind.SET_TIMELEFT, payload: newTime})],
             ['imagePickTimeDecrease', (newTime: number) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_PICK_TIME, payload: newTime})],
             ['nextImage', (image: string) => dispatchSketchVote({type: SketchAndVote.ActionKind.SET_SELECTED_IMAGE, payload: image})],
-            ['nextFinalImage', onNextFinalImage]
+            ['nextFinalImage', onNextFinalImage],
+            ['sketchOrder', onSketchOrder]
         ];
 
         // Turn on each event

@@ -26,7 +26,7 @@ export class SketchAndVote extends Gamemode{
 
         await countdown(
             () => true, // Always return true for now 
-            15, // Players only get 30 seconds to pick their image
+            5, // Players only get 45 seconds to pick their image
             (duration: number) => {
                 this.event('imagePickTimeDecrease', duration); // Let the player know the current time left
             } 
@@ -79,7 +79,6 @@ export class SketchAndVote extends Gamemode{
 
         // Set num rounds equal to n(players) - 1
         this.numRounds = players.size - 1;
-        console.log(`NUM ROUNDS: ${this.numRounds}`);
         this.event('numRounds', this.numRounds);
         super.start();
     }
@@ -101,23 +100,26 @@ export class SketchAndVote extends Gamemode{
     public addSketch(player: string, ogImg: string, newImgHist: string[]): void{
         if (!this.playerSketches.has(ogImg)){ // Initialize the value 
             this.playerSketches.set(ogImg, new Map<string, string[]>());
-            return;
         }
 
         // Add the players image to this sketch map
         let sketches = this.playerSketches.get(ogImg) as Map<string, string[]>;
         sketches.set(player, newImgHist);
+
+        // Send sketchOrder once all players have sent over their images
+        if (this.playerSketches.size === this.playerImages.size && this.numRounds === 0){ // Only send out the sketch order at the very end
+            this.imagesToDisplay = Array.from(this.playerSketches.keys());
+            this.event('sketchOrder', [...this.imagesToDisplay].reverse()); // Emit the sketch order to the players in a reversed order
+        }
     }
 
     protected override end(): void{
         this.numRounds -= 1;
 
         if (this.numRounds > 0){ // Keeps calling gameLoop until the number of rounds is equal to 0
-            console.log("SKETCH AND VOTE NEW ROUND");
             this.gameLoop();
         }else{ // All rounds have concluded
             super.end();
-            this.imagesToDisplay = Array.from(this.playerImages.keys());
         }
     }
 
@@ -125,7 +127,8 @@ export class SketchAndVote extends Gamemode{
         let img: string;
         if (this.imagesToDisplay.length > 0){
             img = this.imagesToDisplay.pop() as string;
-            this.event("nextFinalImage", {image: img, sketches: this.playerImages.get(img)});
+            // This is needed to serialize the map
+            this.event("nextFinalImage", {image: img, sketches: Array.from((this.playerSketches.get(img)?.entries() as any))});
         }else{
             console.log("OUT OF IMAGES");
         }

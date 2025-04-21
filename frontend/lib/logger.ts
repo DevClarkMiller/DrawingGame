@@ -22,7 +22,8 @@ export class DevelopmentLogger implements Logger{
         let end: string = lineSplit[lineSplit.length-1];
         end = end.substring(0, end.length - 1);
 
-        console.log(`${caller}[${start}:${end}] ${args.join(' ')}`);
+        console.log(`${caller}[${start}:${end}]`);
+        console.log(...args);
     } 
     
     error(...args: unknown[]){
