@@ -128,6 +128,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }, [imgHistoryRef, currentPlayer, sketchVote]);
 
     function nextImage(){
+        logger.log("MOVING ONTO NEXT IMAGE!");
         if (!currentPlayer?.isHost) return; // Only the host can select the next image
         socket.emit('nextImage', currentRoomRef.current?.id);
     }

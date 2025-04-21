@@ -15,7 +15,14 @@ export class ProductionLogger implements Logger{
 
 export class DevelopmentLogger implements Logger{
     log(...args: unknown[]) {
-        console.log(...args);
+        let line: string = (new Error().stack?.split('\n')[2].trim() as string).substring(3); // Ignore the first 3 chars
+        let caller: string = line.split(' ')[0];
+        let lineSplit: string[] = line.split(':');
+        let start: string = lineSplit[lineSplit.length-2];
+        let end: string = lineSplit[lineSplit.length-1];
+        end = end.substring(0, end.length - 1);
+
+        console.log(`${caller}[${start}:${end}] ${args.join(' ')}`);
     } 
     
     error(...args: unknown[]){

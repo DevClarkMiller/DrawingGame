@@ -10,7 +10,7 @@ import { useLogger } from '@hooks/useLogger';
 import { SocketContext } from '@context/SocketProvider';
 
 function SketchAndVoteEnd() {
-    const { currentPlayer } = useContext(SocketContext);
+    const { currentPlayer, nextImage } = useContext(SocketContext);
     const logger: Logger = useLogger();
 
     return (
@@ -18,6 +18,7 @@ function SketchAndVoteEnd() {
             <ul>
 
             </ul>
+            {!currentPlayer?.isHost && <button onClick={nextImage}>Next Image</button>}
         </div>
     );
 }
