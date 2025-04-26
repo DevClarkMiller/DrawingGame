@@ -1,0 +1,5 @@
+At each set of player sketches, don't allow host to proceed
+until everyone has selected their vote for the round or until the timer has ran out.
+
+Once the voting is completely finished, dispalyed 1st, 2nd and 3rd votes. 
+Maybe think of some other awards for bigger games to provide alternative incentives

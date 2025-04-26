@@ -58,6 +58,15 @@ export function manageGame(socket: Socket<DefaultEventsMap, DefaultEventsMap, De
         (gamemode as SketchAndVote).addSketch(player.name as string, ogImg, newImgHist);
     });
 
+    socket.on('playerVote', ({idx, image}: {idx: number, image: string}) =>{
+        const player: Player | undefined = players.get(socket.id);
+        if (!player) return;
+
+        const gamemode = activeGamemodes.get(player.roomId);
+        if (!gamemode) return;
+        (gamemode as SketchAndVote).vote(player, idx, image);
+    });
+
     socket.on('endGame', (roomId: string) =>{ endGame(roomId); });
 
     socket.on('initGame', ({game, roomId}: {game: Game, roomId: string}) =>{

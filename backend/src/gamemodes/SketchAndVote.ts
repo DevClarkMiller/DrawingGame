@@ -11,6 +11,8 @@ export class SketchAndVote extends Gamemode{
     private playerImages: Map<string, string[]> = new Map<string, string[]>(); // Maps a players name to a stack of images that they will be able to draw
     private playerSketches: Map<string, Map<string, string[]>> = new Map<string, Map<string, string[]>>(); // The key is the url of the image, the value is each player and their submission
     private imagesToDisplay: string[] = []; // Slowly pop off each image from here, whenever the host click the next image button
+    private playerVotes: Map<string, number[]> = new Map<string, number[]>(); // Key is the image, each index in the number array correlates to the index of the player sketch and how many votes they got
+    private playersWhoVoted: Map<string, number> = new Map<string, number>(); // This is reset each the host clicks "new image" or the timer runs out to vote
 
     public constructor(
         gameSession: GameSession,
@@ -123,10 +125,24 @@ export class SketchAndVote extends Gamemode{
         }
     }
 
+    public vote(player: Player, idx: number, image: string): void{
+        const oldIdx: number | undefined = this.playersWhoVoted.get(player.name as string);
+        if (oldIdx !== undefined){ // Will decrement their old vote
+            (this.playerVotes.get(image) as number[])[oldIdx] -= 1; // Takes back the old vote
+        }; 
+
+        (this.playerVotes.get(image) as number[])[idx] += 1; // Gives a vote to the given index
+        this.playersWhoVoted.set(player.name as string, idx);
+    }
+
     public nextImage(): void{
+        this.playersWhoVoted.clear(); 
         let img: string;
         if (this.imagesToDisplay.length > 0){
             img = this.imagesToDisplay.pop() as string;
+            const cnt: number = (this.playerSketches.get(img) as Map<string, string[]>).size;
+            const voteArray = new Array(cnt).fill(0);
+            this.playerVotes.set(img, voteArray);
             // This is needed to serialize the map
             this.event("nextFinalImage", {image: img, sketches: Array.from((this.playerSketches.get(img)?.entries() as any))});
         }else{
