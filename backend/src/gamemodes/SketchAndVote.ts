@@ -7,12 +7,12 @@ import randomItem from "@lib/randomItem";
 import DEFAULT_IMAGES from "@lib/defaultImages";
 
 export class SketchAndVote extends Gamemode{
-    private numRounds: number = 0;
-    private playerImages: Map<string, string[]> = new Map<string, string[]>(); // Maps a players name to a stack of images that they will be able to draw
-    private playerSketches: Map<string, Map<string, string[]>> = new Map<string, Map<string, string[]>>(); // The key is the url of the image, the value is each player and their submission
-    private imagesToDisplay: string[] = []; // Slowly pop off each image from here, whenever the host click the next image button
-    private playerVotes: Map<string, number[]> = new Map<string, number[]>(); // Key is the image, each index in the number array correlates to the index of the player sketch and how many votes they got
-    private playersWhoVoted: Map<string, number> = new Map<string, number>(); // This is reset each the host clicks "new image" or the timer runs out to vote
+    private _numRounds: number = 0;
+    private _playerImages: Map<string, string[]> = new Map<string, string[]>(); // Maps a players name to a stack of images that they will be able to draw
+    private _playerSketches: Map<string, Map<string, string[]>> = new Map<string, Map<string, string[]>>(); // The key is the url of the image, the value is each player and their submission
+    private _imagesToDisplay: string[] = []; // Slowly pop off each image from here, whenever the host click the next image button
+    private _playerVotes: Map<string, number[]> = new Map<string, number[]>(); // Key is the image, each index in the number array correlates to the index of the player sketch and how many votes they got
+    private _playersWhoVoted: Map<string, number> = new Map<string, number>(); // This is reset each the host clicks "new image" or the timer runs out to vote
 
     public constructor(
         gameSession: GameSession,
@@ -22,47 +22,47 @@ export class SketchAndVote extends Gamemode{
         super(gameSession, roomId, io);
     }
 
-    public override async init(): Promise<void>{
+    public override async Init(): Promise<void>{
         // Start a 60 second timer, once it executes the start function is called
-        this.event('nav', 'sketchAndVote');
+        this.Event('nav', 'sketchAndVote');
 
         await countdown(
             () => true, // Always return true for now 
             5, // Players only get 45 seconds to pick their image
             (duration: number) => {
-                this.event('imagePickTimeDecrease', duration); // Let the player know the current time left
+                this.Event('imagePickTimeDecrease', duration); // Let the player know the current time left
             } 
         );
 
-        this.start();
+        this.Start();
     }
 
     public setNumRounds(numRounds: number): void{
-        this.numRounds = numRounds;
+        this._numRounds = numRounds;
     }
 
     /**
      * Brief: Sets up the round, matching players to an image they haven't seen yet
     */
-    private initRound(): void{
-        this.event("newRound", this.numRounds);
+    private InitRound(): void{
+        this.Event("newRound", this._numRounds);
 
         // Emit to each player their next image
         const gamingPlayers: Map<string, GamingPlayer> = this.gameSession.players;
 
         // Pop an image off each players image list
         gamingPlayers.forEach(gamingPlayer =>{
-            let images: string[] = this.playerImages.get(gamingPlayer.player.name as string) as string[];
+            let images: string[] = this._playerImages.get(gamingPlayer.player.name as string) as string[];
             
             const image: string | undefined = images.pop();
 
             if (image){
-                this.eventTo(gamingPlayer.player.socketId, "nextImage", image); // Broadcast to the specific player
+                this.EventTo(gamingPlayer.player.socketId, "nextImage", image); // Broadcast to the specific player
             }
         });
     }
 
-    public override async start(): Promise<void>{
+    public override async Start(): Promise<void>{
         // Set all the player images
         const players: Map<string, GamingPlayer> = this.gameSession.players;
 
@@ -76,75 +76,75 @@ export class SketchAndVote extends Gamemode{
         // Now for each player, set their possible images
         players.forEach(player =>{
             const possibleImages: string[] = images.filter(img => img != player.data as string);
-            this.playerImages.set(player.player.name as string, possibleImages);
+            this._playerImages.set(player.player.name as string, possibleImages);
         });
 
         // Set num rounds equal to n(players) - 1
-        this.numRounds = players.size - 1;
-        this.event('numRounds', this.numRounds);
-        super.start();
+        this._numRounds = players.size - 1;
+        this.Event('numRounds', this._numRounds);
+        super.Start();
     }
 
-    public async gameLoop(): Promise<void>{
-        this.initRound();
+    public async GameLoop(): Promise<void>{
+        this.InitRound();
         await countdown(
             () => this.gameSession.game.running, 
             this.gameSession.game.maxTime,
             (duration: number) => {
                 this.gameSession.game.timeLeft = duration;
-                this.event('timeDecrease', this.gameSession.game.timeLeft); // Let the player know the current time left
+                this.Event('timeDecrease', this.gameSession.game.timeLeft); // Let the player know the current time left
             } 
         );
 
-        this.end();
+        this.End();
     }
 
     public addSketch(player: string, ogImg: string, newImgHist: string[]): void{
-        if (!this.playerSketches.has(ogImg)){ // Initialize the value 
-            this.playerSketches.set(ogImg, new Map<string, string[]>());
+        if (!this._playerSketches.has(ogImg)){ // Initialize the value 
+            this._playerSketches.set(ogImg, new Map<string, string[]>());
         }
 
         // Add the players image to this sketch map
-        let sketches = this.playerSketches.get(ogImg) as Map<string, string[]>;
+        let sketches = this._playerSketches.get(ogImg) as Map<string, string[]>;
         sketches.set(player, newImgHist);
 
         // Send sketchOrder once all players have sent over their images
-        if (this.playerSketches.size === this.playerImages.size && this.numRounds === 0){ // Only send out the sketch order at the very end
-            this.imagesToDisplay = Array.from(this.playerSketches.keys());
-            this.event('sketchOrder', [...this.imagesToDisplay].reverse()); // Emit the sketch order to the players in a reversed order
+        if (this._playerSketches.size === this._playerImages.size && this._numRounds === 0){ // Only send out the sketch order at the very end
+            this._imagesToDisplay = Array.from(this._playerSketches.keys());
+            this.Event('sketchOrder', [...this._imagesToDisplay].reverse()); // Emit the sketch order to the players in a reversed order
         }
     }
 
-    protected override end(): void{
-        this.numRounds -= 1;
+    protected override End(): void{
+        this._numRounds -= 1;
 
-        if (this.numRounds > 0){ // Keeps calling gameLoop until the number of rounds is equal to 0
-            this.gameLoop();
+        if (this._numRounds > 0){ // Keeps calling gameLoop until the number of rounds is equal to 0
+            this.GameLoop();
         }else{ // All rounds have concluded
-            super.end();
+            super.End();
         }
     }
 
-    public vote(player: Player, idx: number, image: string): void{
-        const oldIdx: number | undefined = this.playersWhoVoted.get(player.name as string);
+    public Vote(player: Player, idx: number, image: string): void{
+        const oldIdx: number | undefined = this._playersWhoVoted.get(player.name as string);
         if (oldIdx !== undefined){ // Will decrement their old vote
-            (this.playerVotes.get(image) as number[])[oldIdx] -= 1; // Takes back the old vote
+            (this._playerVotes.get(image) as number[])[oldIdx] -= 1; // Takes back the old vote
         }; 
 
-        (this.playerVotes.get(image) as number[])[idx] += 1; // Gives a vote to the given index
-        this.playersWhoVoted.set(player.name as string, idx);
+        (this._playerVotes.get(image) as number[])[idx] += 1; // Gives a vote to the given index
+        this._playersWhoVoted.set(player.name as string, idx);
     }
 
-    public nextImage(): void{
-        this.playersWhoVoted.clear(); 
+    public NextImage(): void{
+        this._playersWhoVoted.clear(); 
         let img: string;
-        if (this.imagesToDisplay.length > 0){
-            img = this.imagesToDisplay.pop() as string;
-            const cnt: number = (this.playerSketches.get(img) as Map<string, string[]>).size;
+        if (this._imagesToDisplay.length > 0){
+            img = this._imagesToDisplay.pop() as string;
+            const cnt: number = (this._playerSketches.get(img) as Map<string, string[]>).size;
             const voteArray = new Array(cnt).fill(0);
-            this.playerVotes.set(img, voteArray);
+            this._playerVotes.set(img, voteArray);
             // This is needed to serialize the map
-            this.event("nextFinalImage", {image: img, sketches: Array.from((this.playerSketches.get(img)?.entries() as any))});
+            this.Event("nextFinalImage", {image: img, sketches: Array.from((this._playerSketches.get(img)?.entries() as any))});
         }else{
             console.log("OUT OF IMAGES");
         }

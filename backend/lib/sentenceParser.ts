@@ -22,7 +22,7 @@ export default class SentenceParser{
      * @param sentence 
      * @returns Array of strings which are image urls
      */
-    public async parse(sentence: string): Promise<string[]>{
+    public async Parse(sentence: string): Promise<string[]>{
         const urls: string[] = [];
         try{
             const searchQuery: string = encodeURIComponent(sentence);

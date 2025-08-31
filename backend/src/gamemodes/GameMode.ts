@@ -20,30 +20,30 @@ export default abstract class Gamemode{
         this.io = io;
     }
 
-    protected event(name: string, data: any){
+    protected Event(name: string, data: any){
         this.io.to(this.roomId).emit(name, data);
     }
 
-    protected eventTo(to: string, name: string, data: any){
+    protected EventTo(to: string, name: string, data: any){
         this.io.to(to).emit(name, data);
     }
 
-    protected abstract gameLoop(): Promise<void>;
+    protected abstract GameLoop(): Promise<void>;
 
-    public init(): void{}
+    public Init(): void{}
     
-    async start(): Promise<void>{
+    async Start(): Promise<void>{
         // Start game loop, once the time runs out the game is over
 
         this.gameSession.game.running = true;
 
         // Emit that the game has started
-        this.event(this.eventStartName, this.gameSession.game)
-        await this.gameLoop();
+        this.Event(this.eventStartName, this.gameSession.game)
+        await this.GameLoop();
     }
 
-    protected end(): void{
-        this.event(this.eventEndName, "Game is over"); // Placeholder until I determine what data needs to be sent over
+    protected End(): void{
+        this.Event(this.eventEndName, "Game is over"); // Placeholder until I determine what data needs to be sent over
         this.gameSession.game.running = false;
     };
 }
