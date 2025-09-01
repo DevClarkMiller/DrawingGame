@@ -30,7 +30,7 @@ export type AppContextType = {
 
 export const AppContext = createContext({} as AppContextType);
 
-const CONSOLE_METHODS: string[] = ['log'];
+const CONSOLE_METHODS: string[] = ['log', 'warn', 'info'];
 
 function App() {
   const [imgHistory, setImgHistory] = useState<string[]>([]);

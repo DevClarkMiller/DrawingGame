@@ -137,9 +137,9 @@ export function manageRoom(socket: SocketType){
     const hndl: RoomHandler = new RoomHandler(ServerContext.Instance, socket);
 
     socket.on('joinRoom', (player: Player) =>{ hndl.OnJoinRoom(player); });
+
     socket.on('createRoom', (hostName: string) =>{ hndl.OnCreateRoom(hostName) });
     socket.on('endRoom', (player: Player) =>{ hndl.OnEndRoom(player)});
-
     socket.on('message', (msgData: {msg: Message, player: Player}) =>{ hndl.OnMessage(msgData); });
 
     socket.on('disconnect', () => { hndl.OnDisconnect(); });
