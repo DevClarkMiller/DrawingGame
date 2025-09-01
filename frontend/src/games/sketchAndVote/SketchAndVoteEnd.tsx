@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 
 // Context
 import { SocketContext } from '@context/SocketProvider';
@@ -47,6 +47,7 @@ function SketchAndVoteEnd() {
                     <button onClick={nextImage}>Next Image</button> : <div className='size-full flex items-center'>Waiting for host...</div>} 
                 </div>
             </div>
+            {/* TODO: Make button say "Start" if current player is host and nothing has been clicked yet */}
             {sketchVote.finalSketch && currentPlayer?.isHost && <button onClick={nextImage}>Next Image</button>}
         </div>
     );

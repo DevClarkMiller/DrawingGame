@@ -1,9 +1,6 @@
 import { createContext, useEffect, useRef, useState} from "react";
 import { Route, Routes } from "react-router-dom";
 
-// Lib
-import { Logger } from '@lib/logger';
-
 // Pages
 import JoinRoom from "@pages/JoinRoom";
 import CreateRoom from "@pages/CreateRoom";
@@ -23,10 +20,8 @@ import SocketProvider from "@context/SocketProvider";
 
 // Styles
 import 'react-resizable/css/styles.css';
-import { useLogger } from "@hooks/useLogger";
 
 export type AppContextType = {
-  logger: Logger;
   imgHistory: string[];
   imgHistoryRef: React.RefObject<string[]>;
   onImage: (image: string) => void;
@@ -35,13 +30,28 @@ export type AppContextType = {
 
 export const AppContext = createContext({} as AppContextType);
 
+const CONSOLE_METHODS: string[] = ['log'];
+
 function App() {
-  const logger: Logger = useLogger();
   const [imgHistory, setImgHistory] = useState<string[]>([]);
   const imgHistoryRef = useRef(imgHistory);
 
   useEffect(() =>{
     imgHistoryRef.current = imgHistory;
+
+    console.log(process.env.ENV);
+
+    // If it's a production enviroment
+    if (process.env.ENV !== 'DEV'){
+      console.log("(Prod) - logging off ❌");
+      // Since we can query Javascript Object methods with object['methodname'],
+      // we can simply iterate a collection of the methods we want to disable
+      CONSOLE_METHODS.forEach((method: string) =>{
+        (window.console as any)[method] = function(){}
+      })
+    }
+
+    console.log("(Dev) - Logging on ✅");
   }, [imgHistory]);
 
   function onImage(image: string): void{
@@ -69,7 +79,7 @@ function App() {
 
   return (
     <div className="size-full min-h-screen text-main flex flex-col items-center justify-center flex-grow">
-        <AppContext.Provider value={{logger, onImage, imgHistory, clearImgHistory, imgHistoryRef}}>
+        <AppContext.Provider value={{onImage, imgHistory, clearImgHistory, imgHistoryRef}}>
           <SocketProvider>
               <Header />
               <main className="p-5 size-full flex flex-col items-center justify-center flex-grow">

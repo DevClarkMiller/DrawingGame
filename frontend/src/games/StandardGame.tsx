@@ -21,11 +21,11 @@ function PeopleCount({playerCount}: {playerCount: number}){
 // All games will be based on this, however will have additional context on top for their rules
 function StandardGame({numRounds = 0, currRound = 0}: {numRounds?: number, currRound?: number}) {
     const { currentGame, players } = useContext(SocketContext);
-    const { onImage, logger } = useContext(AppContext);
+    const { onImage } = useContext(AppContext);
 
 
     useEffect(() =>{
-        logger.log(`Num Rounds: ${numRounds}, Current Round: ${currRound}`);
+        console.log(`Num Rounds: ${numRounds}, Current Round: ${currRound}`);
     }, [numRounds, currRound]);
 
     return (

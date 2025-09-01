@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start:dev": "cross-env NODE_ENV=development vite",
-    "start:prod": "cross-env NODE_ENV=production vite",
+    "start:dev": "vite", 
+    "start:prod": "vite --mode production",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

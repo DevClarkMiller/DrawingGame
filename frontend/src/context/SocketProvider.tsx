@@ -54,7 +54,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     const navigate: NavigateFunction = useNavigate();
 
     // Context
-    const { imgHistoryRef, clearImgHistory, logger } = useContext(AppContext);
+    const { imgHistoryRef, clearImgHistory } = useContext(AppContext);
 
     const socket: Socket = useSocket(process.env.SERVER_URL as string || "http://localhost:5170");
     const [isConnected, setIsConnected] = useState<boolean>(socket?.connected);
@@ -86,7 +86,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
     useEffect(() => {
         if (sketchVote?.selectedImage){
-            logger.log(sketchVote.selectedImage);
+            console.log(sketchVote.selectedImage);
             socket.emit('playerPickImage', {image: sketchVote.selectedImage, roomId: currentRoom?.id});
         }
     }, [sketchVote?.selectedImage]);
@@ -103,7 +103,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
         setCurrentPlayer({name: hostName, roomId: "", isHost: true});
         setLoading(true);
         socket.emit("createRoom", hostName);
-        logger.log("Creating room");
+        console.log("Creating room");
     }
 
     function leaveRoom(){
@@ -177,7 +177,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
     function onGameStart(game: Game){
         setCurrRound(0);
-        logger.log("Game starting", game);
+        console.log("Game starting", game);
         dispatchGame({type: Games.ActionKind.SET_GAME, payload: game}); // Set the currentGame
         // Navigate the player based off the gamemode
         switch(game.name){
@@ -192,11 +192,11 @@ function SocketProvider({children}: {children: React.ReactNode}) {
     }
 
     function onGameEnded(msg: string){
-        logger.log(msg);
+        console.log(msg);
 
         switch(currentGame.name){
             case "SketchAndVote":
-                logger.log("SKETCH AND VOTE NEXT SCREEN!");
+                console.log("SKETCH AND VOTE NEXT SCREEN!");
                 sendSketchHist();
                 navigate('/sketchAndVoteEnd');
                 break;
@@ -219,7 +219,7 @@ function SocketProvider({children}: {children: React.ReactNode}) {
 
     function onNextFinalImage(data: {image: string, sketches: Array<any>}){
         dispatchSketchVote({type: SketchAndVote.ActionKind.SET_FINAL_SKETCH, payload: data});
-        // logger.log(data);
+        console.log(data);
     }
 
 
